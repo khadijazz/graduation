@@ -24,6 +24,7 @@ app.get('/', (req, res) => {
 console.log('Hello, World!');
 
 console.log('inshallah n3ad');
+console.log('testtestest');
 
 app.listen(4000, () => {
   console.log('Server is running on port 3000');
