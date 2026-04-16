@@ -14,7 +14,7 @@ mongoose.connect('mongodb://127.0.0.1:27017/ehtmam').then(() => {
 });
  
 
-
+console.log('Hello, World!');
 
 app.get('/', (req, res) => {
     res.setHeader('Content-Type', 'text/plain');
