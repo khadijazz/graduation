@@ -20,8 +20,6 @@ app.get('/', (req, res) => {
   res.send('Hello, World!');
 });
 
-console.log('ana esmi youssef');
-
 
 
 app.listen(4000, () => {
