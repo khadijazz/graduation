@@ -1,4 +1,4 @@
- const express = require('express');
+const express = require('express');
 const mongoose = require('mongoose');
 const app = express();
 const morgan = require('morgan');
@@ -13,7 +13,6 @@ mongoose.connect('mongodb://127.0.0.1:27017/ehtmam').then(() => {
     console.error('Error connecting to MongoDB:', error);
 });
  
-
 
 app.get('/', (req, res) => {
     res.setHeader('Content-Type', 'text/plain');

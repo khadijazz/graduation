@@ -2,8 +2,7 @@ const express = require("express");
 
 const router=express.Router();
 
-const controller=require( "../controller/caregiver.controller")
-
+const controller=require("../controllers/caregiver.controller")
 
 router.post('/',controller.newCaregiver);
 
