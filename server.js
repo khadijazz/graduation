@@ -5,10 +5,8 @@ const morgan = require('morgan');
 const caregiverRouter=require("./routes/caregiver.routes");
 const userRouter=require("./routes/user.routes");
 
-app.use(express.json());
 
-app
-
+// connected to mongodb
 mongoose.connect('mongodb://127.0.0.1:27017/ehtmam').then(() => {
     console.log('Connected to MongoDB');
 }).catch((error) => {
@@ -21,6 +19,16 @@ app.get('/', (req, res) => {
     res.setHeader('Content-Type', 'text/plain');
   res.send('Hello, World!');
 });
+
+//logger
+app.use(morgan("dev"));
+
+//middleware to parse json body
+app.use(express.json({limit:"10mb"}));
+//middlware to parse url encoded body
+app.use(express.urlencoded({extended:true,limit:"10mb"}));
+
+
 
 //middleware of routers
 app.use("/caregiver",caregiverRouter);
