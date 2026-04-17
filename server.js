@@ -5,7 +5,7 @@ const morgan = require('morgan');
 const caregiverRouter=require("./routes/caregiver.routes");
 const userRouter=require("./routes/user.routes");
 const servicesRouter=require("./routes/services.router");
-
+const transactionRouter=require("./routes/transaction.router");
 
 // connected to mongodb
 mongoose.connect('mongodb://127.0.0.1:27017/ehtmam').then(() => {
@@ -34,6 +34,7 @@ app.use(express.urlencoded({extended:true,limit:"10mb"}));
 app.use("/caregiver",caregiverRouter);
 app.use("/user",userRouter);
 app.use("/services",servicesRouter);
+app.use("/transaction",transactionRouter);
 
 
 
