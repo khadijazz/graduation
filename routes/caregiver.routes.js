@@ -5,13 +5,13 @@ const router=express.Router();
 const controller=require( "../controller/caregiver.controller")
 
 
-router.post('/caregiver',controller.newCaregiver);
+router.post('/',controller.newCaregiver);
 
-router.route('/caregiver/:id')
+router.route('/:id')
 .get(controller.getCareGiver)
 .patch(controller.updateCareGiver)
 .delete(controller.deleteCareGiver)  
 
-router.delete("/caregivers",controller.deleteallCareGivers)
+router.delete("/",controller.deleteallCareGivers)
 
 module.exports=router;

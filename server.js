@@ -1,7 +1,9 @@
  const express = require('express');
 const mongoose = require('mongoose');
-
 const app = express();
+const morgan = require('morgan');
+const caregiverRouter=require("./routes/caregiver.routes");
+const userRouter=require("./routes/user.routes");
 
 app.use(express.json());
 
@@ -19,6 +21,10 @@ app.get('/', (req, res) => {
     res.setHeader('Content-Type', 'text/plain');
   res.send('Hello, World!');
 });
+
+//middleware of routers
+app.use("/caregiver",caregiverRouter);
+app.use("/user",userRouter);
 
 
 
