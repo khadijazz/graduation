@@ -4,6 +4,7 @@ const app = express();
 const morgan = require('morgan');
 const caregiverRouter=require("./routes/caregiver.routes");
 const userRouter=require("./routes/user.routes");
+const servicesRouter=require("./routes/services.router");
 
 
 // connected to mongodb
@@ -32,6 +33,7 @@ app.use(express.urlencoded({extended:true,limit:"10mb"}));
 //middleware of routers
 app.use("/caregiver",caregiverRouter);
 app.use("/user",userRouter);
+app.use("/services",servicesRouter);
 
 
 
