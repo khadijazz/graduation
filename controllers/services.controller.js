@@ -18,7 +18,8 @@ exports.getAllServices=async (req,res,next)=>{
 }
 
 exports.getService=async (req,res,next)=>{
-    const Service=await services.findById(req.params.id);
+    const id =req.params.id;
+    const Service=await services.findById(id);
     res.status(200).json({
         status:"success",
         data:Service
@@ -26,7 +27,9 @@ exports.getService=async (req,res,next)=>{
 }
 
 exports.updateService=async (req,res,next)=>{
-    const Service=await services.findByIdAndUpdate(req.params.id,req.body,{new:true,runValidators:true});
+    const id =req.params.id;
+    const Data = req.body;
+    const Service=await services.findByIdAndUpdate(id,Data,{new:true,runValidators:true});
     res.status(200).json({
         status:"success",
         data:Service
@@ -34,7 +37,8 @@ exports.updateService=async (req,res,next)=>{
 }
 
 exports.deleteService=async (req,res,next)=>{
-    const Service=await services.findByIdAndDelete(req.params.id);
+    const id =req.params.id;
+    const Service=await services.findByIdAndDelete(id);
     res.status(200).json({
         status:"success",
         data:Service

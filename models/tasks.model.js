@@ -41,6 +41,6 @@ taskType:{
     default:"daily",
 },
 
-})
+},{strict:true})
 
 module.exports=mongoose.model("tasks",tasksSchema);

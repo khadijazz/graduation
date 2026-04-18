@@ -1,6 +1,6 @@
 const caregiver=require("../models/caregiver.model");
 
-const newCaregiver=  async (req, res) => {
+exports.newCaregiver=  async (req, res) => {
     try {
         const caregiverData = req.body;
         console.log(req.body);
@@ -17,7 +17,7 @@ const newCaregiver=  async (req, res) => {
     }
 }
 
-const getCareGiver = async (req,res)=>{
+exports.getCareGiver = async (req,res)=>{
     try {
         const caregiverr=await caregiver.findById(req.params.id);
         if(!caregiverr){
@@ -35,7 +35,7 @@ const getCareGiver = async (req,res)=>{
     }
 }
 
-const updateCareGiver = async (req,res)=>{
+exports.updateCareGiver = async (req,res)=>{
     try {
         const updateData=req.body;
         const newCaregiver=await caregiver.findByIdAndUpdate(req.params.id,updateData,{new:true});
@@ -54,7 +54,7 @@ const updateCareGiver = async (req,res)=>{
     }
 }
 
-const deleteCareGiver = async (req,res)=>{
+exports.deleteCareGiver = async (req,res)=>{
     try {
         const deleteCaregiver=await caregiver.findByIdAndDelete(req.params.id);
         if(!deleteCaregiver){
@@ -72,7 +72,7 @@ const deleteCareGiver = async (req,res)=>{
     }
 }
 
-const deleteallCareGivers =async(req,res)=>{
+exports.deleteallCareGivers =async(req,res)=>{
     try {
         await caregiver.deleteMany();
         res.status(200).json({
@@ -86,10 +86,3 @@ const deleteallCareGivers =async(req,res)=>{
     }
 }
 
-module.exports={
-    newCaregiver,
-    getCareGiver,
-    updateCareGiver,
-    deleteCareGiver,
-    deleteallCareGivers,
-}

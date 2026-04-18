@@ -27,6 +27,6 @@ const transactionSchema=new mongoose.Schema({
         default:"pending"
     },
     
-})
+}, { strict: true });
 
 module.exports=mongoose.model("Transaction",transactionSchema);
