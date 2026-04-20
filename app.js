@@ -31,4 +31,27 @@ app.use("/transaction",transactionRouter);
 app.use("/tasks",tasksRouter);
 app.use("/booking",bookingRouter);
 
+
+app.all("{*path}",(req,res,next)=>{
+next(new ApiError(`cannot find ${req.originalUrl} on this server!`,404))
+})
+
+app.use((error,req,res,next)=>{
+  if(error.isOperational){
+res.status(error.statusCode).json({
+status:"fail",
+message:error.message,
+data:null
+});   
+  }else{
+    console.log(error);
+    res.status(500).json({
+      status:"error",
+      message:"Internal server error",
+      data:null});
+  }
+})
+
+
+
 module.exports=app;
