@@ -1,18 +1,18 @@
 const express=require("express");
 const router=express.Router();
 const clientBundleController=require("../controllers/clientbundel.controller");
-const verfiyusers=require("../Utills/verfiyusers");
-const {pmtied}=require("../Utills/premtied");
-router.use(verfiyusers);
+const verifyUser=require("../Utills/verifyuser")
+const {permittedTo} =require("../Utills/premittedTo");
+router.use(verifyUser);
 
 
 router.route("/")
-.post(pmtied(["client"]),clientBundleController.chooseBundle)
+.post(permittedTo(["client"]),clientBundleController.chooseBundle)
 .get(clientBundleController.getallbundle);
 
 router.route("/:id")
-.get(pmtied(["client","admin"]),clientBundleController.getBundleById)
-.patch(pmtied(["client"]),clientBundleController.payBundle)
-.delete(pmtied(["client"]),clientBundleController.cancelBundle);
+.get(permittedTo(["client","admin"]),clientBundleController.getBundleById)
+.patch(permittedTo(["client"]),clientBundleController.payBundle)
+.delete(permittedTo(["client"]),clientBundleController.cancelBundle);
 
 module.exports=router;

@@ -1,17 +1,17 @@
 const express = require("express");
 const router = express.Router();
 const reviewController = require("../controllers/review.controller");
-const verfiyusers = require("../Utills/verfiyusers");
-const {pmtied}=require("../Utills/premtied");
-router.use(verfiyusers);
+const verifyUser=require("../Utills/verifyuser")
+const {permittedTo} =require("../Utills/premittedTo");
+router.use(verifyUser);
 
 router.route("/")
-.post(pmtied(["client","caregiver"]),reviewController.createReview)
-.get(pmtied(["admin"]),reviewController.getAllReviews);
+.post(permittedTo(["client","caregiver"]),reviewController.createReview)
+.get(permittedTo(["admin"]),reviewController.getAllReviews);
 
 router.route("/:id")
-.get(pmtied(["client","caregiver","admin"]),reviewController.getReviewById)
-.patch(pmtied(["client","caregiver"]),reviewController.updateReview)
-.delete(pmtied(["client","caregiver","admin"]),reviewController.deleteReview);
+.get(permittedTo(["client","caregiver","admin"]),reviewController.getReviewById)
+.patch(permittedTo(["client","caregiver"]),reviewController.updateReview)
+.delete(permittedTo(["client","caregiver","admin"]),reviewController.deleteReview);
 
 module.exports=router;
