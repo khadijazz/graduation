@@ -1,8 +1,8 @@
-const task=require("../models/tasks.model");
+const taskServices=require("../services/task.services");
 
 exports.createTask=async (req,res,next)=>{
 const Data=req.body;
-const Task=await task.create(Data);
+const Task=await taskServices.createTask(Data);
 res.status(201).json({
     message:"task created successfully",
     status:"success",
@@ -11,7 +11,7 @@ res.status(201).json({
 }
 
 exports.getAllTasks=async (req,res,next)=>{
-const Task=await task.find({});
+const Task=await taskServices.getalltasks(req.query);
 res.status(200).json({
     message:"tasks retrieved successfully",
     status:"success",
@@ -20,7 +20,10 @@ res.status(200).json({
 }
 
 exports.getTaskById=async (req,res,next)=>{
-const Task=await task.findById(req.params.id);
+const Task=await taskServices.gettasksbyid(req.params.id);
+if(!Task){
+    throw new ApiError("task not found",404);
+}
 res.status(200).json({
     message:"task retrieved successfully",
     status:"success",
@@ -29,7 +32,7 @@ res.status(200).json({
 }
 
 exports.updateTask=async (req,res,next)=>{
-const Task=await task.findByIdAndUpdate(req.params.id,req.body,{new:true});
+const Task=await taskServices.updatetasks(req.params.id,req.body);
 res.status(200).json({
     message:"task updated successfully",
     status:"success",
@@ -38,7 +41,7 @@ res.status(200).json({
 }
 
 exports.deleteTask=async (req,res,next)=>{
-const Task=await task.findByIdAndDelete(req.params.id);
+const Task=await taskServices.deletetasks(req.params.id);
 res.status(200).json({
     message:"task deleted successfully",
     status:"success",
@@ -46,7 +49,7 @@ res.status(200).json({
 })
 }
 exports.deleteAllTasks=async (req,res,next)=>{
-const Task=await task.deleteMany();
+const Task=await taskServices.deleteAllTasks();
 res.status(200).json({
     message:"tasks deleted successfully",
     status:"success",

@@ -1,8 +1,9 @@
-const services=require("../models/services.model");
+const servicesServices=require("../services/services.services");
+const {ApiError}=require("../Utills/ApiError");
 
 exports.createService=async (req,res,next)=>{
 const Data=req.body;
-const service=await services.create(Data);
+const service=await servicesServices.createService(Data);
 res.status(201).json({
     status:"success",
     data:service
@@ -10,7 +11,7 @@ res.status(201).json({
 }
 
 exports.getAllServices=async (req,res,next)=>{
-    const Services=await services.find({});
+    const Services=await servicesServices.getallservices(req.query);
     res.status(200).json({
         status:"success",
         data:Services
@@ -19,7 +20,10 @@ exports.getAllServices=async (req,res,next)=>{
 
 exports.getService=async (req,res,next)=>{
     const id =req.params.id;
-    const Service=await services.findById(id);
+     const Service=await servicesServices.getservicebyid(id);
+     if(!Service){
+      throw new ApiError("service not found",404);
+     }
     res.status(200).json({
         status:"success",
         data:Service
@@ -29,7 +33,7 @@ exports.getService=async (req,res,next)=>{
 exports.updateService=async (req,res,next)=>{
     const id =req.params.id;
     const Data = req.body;
-    const Service=await services.findByIdAndUpdate(id,Data,{new:true,runValidators:true});
+    const Service=await servicesServices.updateservice(id,Data);
     res.status(200).json({
         status:"success",
         data:Service
@@ -38,7 +42,7 @@ exports.updateService=async (req,res,next)=>{
 
 exports.deleteService=async (req,res,next)=>{
     const id =req.params.id;
-    const Service=await services.findByIdAndDelete(id);
+    const Service=await servicesServices.deleteservice(id);
     res.status(200).json({
         status:"success",
         data:Service
@@ -46,7 +50,7 @@ exports.deleteService=async (req,res,next)=>{
 }
 
 exports.deletAllServices=async (req,res,next)=>{
-    const Services=await services.deleteMany({});
+    const Services=await servicesServices.deleteAllServices();
     res.status(200).json({
         status:"success",
         data:Services

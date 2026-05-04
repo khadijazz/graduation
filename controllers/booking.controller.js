@@ -1,8 +1,9 @@
-const booking=require("../models/booking.model");
+const {ApiError}=require("../Utills/ApiError.js");
+const bookingService=require("../services/booking.services");
 
 exports.createBooking=async(req,res,next)=>{
 const Data=req.body;
-const Booking=await booking.create(Data);
+const Booking=await bookingService.createBooking(Data);
 res.status(201).json({
   message:"booking created successfully",
   success:true,
@@ -10,7 +11,7 @@ res.status(201).json({
 })}
 
 exports.getAllBookings=async(req,res,next)=>{
-  const Booking=await booking.find({});
+  const Booking=await bookingService.getallbooking(req.query);
   res.status(200).json({
     message:"bookings fetched successfully",
     success:true,
@@ -19,9 +20,12 @@ exports.getAllBookings=async(req,res,next)=>{
 }
 
 exports.getBookingById=async(req,res,next)=>{
-  const Booking=await booking.findById(req.params.id);
+  const Booking=await bookingService.getbookingbyid(req.params.id);
+  if(!Booking){
+    throw new ApiError("booking with this id does not exist",404);
+  }
   res.status(200).json({
-    message:"booking fetched successfully",
+    message:"booking retrieved successfully",
     success:true,
     data:Booking
   })
@@ -30,7 +34,7 @@ exports.getBookingById=async(req,res,next)=>{
 exports.updateBooking=async(req,res,next)=>{
   const id=req.params.id;
   const Data = req.body;  
-const Booking=await booking.findByIdAndUpdate(id,Data,{new:true,runValidators:true});
+const Booking=await bookingService.updatebooking(id,Data);
   res.status(200).json({
     message:"booking updated successfully",
     success:true,
@@ -40,8 +44,8 @@ const Booking=await booking.findByIdAndUpdate(id,Data,{new:true,runValidators:tr
 
 exports.deleteBooking=async(req,res,next)=>{
   const id=req.params.id;
-  const Booking=await booking.findByIdAndDelete(id);
+  const Booking=await bookingService.deletebooking(id);
   res.status(200).json({
     message:"booking deleted successfully",
-  }),{strict:true}
+  })
 }
