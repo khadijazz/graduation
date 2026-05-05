@@ -46,6 +46,7 @@ res.status(404).json({
 })
 
 app.use((error,req,res,next)=>{
+  console.log(error);
   if(error.isOperational){
 res.status(error.statusCode).json({
 status:"fail",

@@ -9,7 +9,7 @@ const sendEmail = require("../Utills/email");
 const createUserLog=(data)=>Userlog.create(data);
 
 const loginUser=async (data)=>{
-const userDoc=await Userlog.findOne({email:data.email});
+const userDoc=await Userlog.findOne({email:data.email}).select("+password");
 if(!userDoc){
     throw new ApiError("no user found with this email",400);
 }
@@ -131,10 +131,31 @@ const resetPassword = async (plainToken, newPassword, passwordConfirmation) => {
  
   return token;
 };
+ //change password
+ const updatePassword = async (userId, currentPassword, newPassword, passwordConfirmation) => {
+  // STEP 1 — جيب الـ user من الـ DB مع الـ password
+  // (الـ password عنده select:false في بعض الـ schemas — هنا بنجبره صراحةً)
+  const user = await Userlog.findById(userId).select("+password");
+  if (!user) throw new ApiError("User not found", 404);
  
+  // STEP 2 — تحقق إن الـ current password صح
+  const isCorrect = await bcrypt.compare(currentPassword, user.password);
+  if (!isCorrect) throw new ApiError("Your current password is wrong", 401);
+ 
+  // STEP 3 — حدّث الـ password
+  // بنستخدم save() مش findByIdAndUpdate() عشان الـ pre-save hook يشتغل ويعمل hash
+  user.password = newPassword;
+  user.passwordConfirmation = passwordConfirmation;
+  await user.save();
+ 
+  // STEP 4 — ابعت JWT جديد (الـ user مسجل دخول تلقائياً)
+  return jwt.sign({ id: user._id, role: user.role }, "this-is-my-very-long-secret-key");
+};
+
 
 module.exports ={
     createUserLog,
+    updatePassword,
     loginUser,
     getUserById,
     resetPassword,

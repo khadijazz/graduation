@@ -61,4 +61,17 @@ exports.resetPassword = async (req, res, next) => {
     data: token,   // JWT — same shape as loginUser response
   });
 };
+exports.updatePassword = async (req, res, next) => {
+  const token = await userlogServices.updatePassword(
+    req.user._id,                      
+    req.body.currentPassword,          
+    req.body.password,                 
+    req.body.passwordConfirmation    
+  );
+  res.status(200).json({
+    status: "success",
+    message: "Password updated successfully. You are now logged in.",
+    data: token,
+  });
+};
  
