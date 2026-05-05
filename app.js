@@ -2,7 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const app = express();
 const morgan = require('morgan');
-
+require('dotenv').config();
 const caregiverRouter=require("./routes/caregiver.routes");
 const userRouter=require("./routes/user.routes");
 const servicesRouter=require("./routes/services.router");
