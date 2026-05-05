@@ -44,11 +44,13 @@ const userlogSchema = new mongoose.Schema({
 } , 
 { timestamps: true });
 
- userlogSchema.pre("save",async function(){
-  if(this.isNew)
-    this.passwordConfirmation=undefined;
-  this.password= await bcrypt.hash(this.password,10)
-}) ;
+
+userlogSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+
+  this.passwordConfirmation = undefined;
+  this.password = await bcrypt.hash(this.password, 10);
+});
 userlogSchema.post("find*",function(result){
 result.password=undefined;
 })
