@@ -33,3 +33,32 @@ exports.finduserlogbyid=async(req,res,next)=>{
     data: userlog
   });
 }
+
+exports.forgotPassword = async (req, res, next) => {
+  await userlogServices.forgotPassword(
+    req.body,
+    req.protocol,      // "http" or "https" — used to build the reset URL
+    req.get("host")    // e.g. "localhost:4000"
+  );
+ 
+  res.status(200).json({
+    status: "success",
+    message: "Reset link sent to your email! Valid for 10 minutes.",
+    data: null,
+  });
+};
+
+exports.resetPassword = async (req, res, next) => {
+  const token = await userlogServices.resetPassword(
+    req.params.token,              // plain token from the URL
+    req.body.password,             // new password
+    req.body.passwordConfirmation  // must match password
+  );
+ 
+  res.status(200).json({
+    status: "success",
+    message: "Password reset successfully. You are now logged in.",
+    data: token,   // JWT — same shape as loginUser response
+  });
+};
+ 
