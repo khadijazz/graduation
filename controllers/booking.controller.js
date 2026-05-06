@@ -49,3 +49,4 @@ exports.deleteBooking=async(req,res,next)=>{
     message:"booking deleted successfully",
   })
 }
+
