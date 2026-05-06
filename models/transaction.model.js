@@ -1,34 +1,49 @@
-const mongoose=require("mongoose");
+const mongoose = require("mongoose");
 
-const transactionSchema=new mongoose.Schema({
-    transactionId:{
-        type:String,
-        required:true,
-        unique:true
-    },
-    amount:{
-        type:Number,
-        required:true,
-        min:0,
-        max:10000
-    },
-    date_of_transaction:{
-        type:Date,
-        default:Date.now
-    },
-    payment_method:{
-        type:String,
-        enum:["cash","card","wallet"],
-        required:true
-    },
-    status:{
-        type:String,
-        enum:["pending","completed","failed"],
-        default:"pending"
-    },
-    
-}, { strict: true,
-    timestamps:true
- });
+const transactionSchema = new mongoose.Schema({
+  userlog: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Userlog",
+    required: true,
+  },
 
-module.exports=mongoose.model("Transaction",transactionSchema);
+  wallet: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Wallet",
+  },
+
+  booking: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Booking",
+  },
+
+  amount: {
+    type: Number,
+    required: true,
+    min: 1,
+  },
+
+  type: {
+    type: String,
+    enum: ["DEPOSIT", "BOOKING_PAYMENT", "REFUND"],
+    required: true,
+  },
+
+  paymentMethod: {
+    type: String,
+    enum: ["CARD", "MOBILE_WALLET", "INTERNAL_WALLET"],
+    required: true,
+  },
+
+  status: {
+    type: String,
+    enum: ["PENDING", "COMPLETED", "FAILED"],
+    default: "PENDING",
+  },
+
+  paymobOrderId: String,
+  paymobTransactionId: String,
+
+}, { timestamps: true });
+
+module.exports = mongoose.model("Transaction", transactionSchema);

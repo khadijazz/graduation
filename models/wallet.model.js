@@ -1,15 +1,24 @@
 const mongoose = require("mongoose");
 
 const walletSchema = new mongoose.Schema({
-    user: {
+    userlog: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: "userlog",
         required: true,
     },
     balance: {
         type: Number,
         required: true,
     },
+     totalDeposited: {
+    type: Number,
+    default: 0,
+  },
+
+  totalSpent: {
+    type: Number,
+    default: 0,
+  },
     transactions: {
         type: [mongoose.Schema.Types.ObjectId],
         ref: "Transaction",
