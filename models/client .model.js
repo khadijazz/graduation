@@ -1,13 +1,84 @@
-const mongoose=require("mongoose");
+// const mongoose=require("mongoose");
+// const mongoose = require('mongoose');
+//   const bcrypt = require('bcryptjs');
+//   const crypto = require('crypto');
+// const clientSchema=new mongoose.Schema({
 
-const clientSchema=new mongoose.Schema({
-    user: {type:mongoose.Schema.Types.ObjectId,ref:"User",required:true},
-    name: {type:String,required:true},
-    email: {type:String,required:true},
-    phone: {type:String,required:true},
-    address: {type:String,required:true},
-    rated: {type:Number,default:0},
+//     full_name:{
+//       type: String,
+//       required: true,
+//     }, 
+//     email: {
+//         type: String,
+//         required: true,
+//         unique: true,
+//         trim: true,
+//         set: v => v.replace(/\s+/g, '')
+//       },
+//       password: {
+//         type: String,
+//        trim: true,
+//         required: true,
+      
+//       }, 
+//      passwordConfirmation: {
+//         type: String,
+//         trim: true,
+//         validate:function (value){
+//         return this.password===value;
+//         },
+  
+//       }, 
+  
+//       role: {
+//         type: String,
+//         enum: ["client", "caregiver", "admin"],
+//         default: "client",
+//       },
+//       nationalId:{
+//         type:String,
+//       },
+      
+//      passwordResetToken: String,          
+//      passwordResetExpires: Date,          
+//      passwordResetAttempts: {             
+//         type: Number,
+//         default: 0,
+//       },
+  
+//   } , 
+//   { timestamps: true });
+  
+  
+//   userlogSchema.pre("save", async function () {
+//     if (!this.isModified("password")) return;
+  
+//     this.passwordConfirmation = undefined;
+//     this.password = await bcrypt.hash(this.password, 10);
+//   });
+//   userlogSchema.post("find*",function(result){
+//   result.password=undefined;
+//   })
+  
+//   userlogSchema.methods.createPasswordResetToken = function () {
+//     // 1) Plain token → goes inside the email link (never stored in DB)
+//     const resetToken = crypto.randomBytes(32).toString("hex");
+   
+//     // 2) Hashed token → stored in DB (useless to a hacker without the plain one)
+//     this.passwordResetToken = crypto
+//       .createHash("sha256")
+//       .update(resetToken)
+//       .digest("hex");
+   
+//     // 3) Token expires in 10 minutes
+//     this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+   
+//     // 4) Reset attempt counter for this fresh token
+//     this.passwordResetAttempts = 0;
+   
+//     // 5) Return the PLAIN token (the one that goes in the email URL)
+//     return resetToken;
+//   };
     
-})
 
-module.exports = mongoose.model("Client", clientSchema);
+// module.exports = mongoose.model("Client", clientSchema);
