@@ -1,4 +1,5 @@
 const Userlog = require("../models/userlog.model");
+const CaregiverModel=require("../models/caregiver.model");
 const jwt =require("jsonwebtoken");
 const bcrypt=require("bcryptjs");
 const crypto = require("crypto"); 
@@ -9,7 +10,13 @@ const sendEmail = require("../Utills/email");
 const createUserLog=(data)=>Userlog.create(data);
 
 const loginUser=async (data)=>{
-const userDoc=await Userlog.findOne({email:data.email}).select("+password");
+let userDoc=await Userlog.findOne({email:data.email}).select("+password");
+ let userType = "user";
+
+  if (!userDoc) {
+    userDoc = await CaregiverModel.findOne({ email: data.email }).select("+password");
+    userType = "caregiver";
+  }
 if(!userDoc){
     throw new ApiError("no user found with this email",400);
 }
@@ -19,7 +26,13 @@ const isTheOne=await bcrypt.compare(password,hashedSaltedPassword);
 if(!isTheOne){
     throw new ApiError("email or password is wrong",400);
 }
-return jwt.sign({id:userDoc._id,role: userDoc.role},"this-is-my-very-long-secret-key")
+return jwt.sign(
+  {
+    id: userDoc._id,
+    role: userDoc.role || userType
+  },
+  "this-is-my-very-long-secret-key"
+);
 }
 
 const getUserById=(id)=>Userlog.findById(id);
