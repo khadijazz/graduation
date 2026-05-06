@@ -1,7 +1,7 @@
 const express=require("express");
 const router=express.Router();
 const clientBundleController=require("../controllers/clientbundel.controller");
-const verifyUser=require("../Utills/verifyuser")
+const verifyUser=require("../Utills/verifyUser")
 const {permittedTo} =require("../Utills/premittedTo");
 router.use(verifyUser);
 
