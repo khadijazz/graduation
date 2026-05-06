@@ -37,10 +37,15 @@ const caregiverSchema = new mongoose.Schema({
   profile_picture: { type: String },
     certifications: { type: String },
     verifcation_documents: { type: String },
+     passwordResetToken: String,          
+   passwordResetExpires: Date,          
+   passwordResetAttempts: {             
+      type: Number
+     
+    },
 
 }, {
   timestamps: true,
-  strict: true
 });
 caregiverSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
@@ -54,7 +59,7 @@ result.password=undefined;
 
 caregiverSchema.methods.createPasswordResetToken = function () {
   // 1) Plain token → goes inside the email link (never stored in DB)
-  const resetToken = crypto.randomBytes(32).toString("hex");
+  const resetToken = crypto.randomBytes(10).toString("hex");
  
   // 2) Hashed token → stored in DB (useless to a hacker without the plain one)
   this.passwordResetToken = crypto

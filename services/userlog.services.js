@@ -7,7 +7,16 @@ const {ApiError}=require("../Utills/ApiError");
 const sendEmail = require("../Utills/email");
 
 
-const createUserLog=(data)=>Userlog.create(data);
+const createUserLog = async (data) => {
+  const existingUser = await Userlog.findOne({ email: data.email });
+  const existingCaregiver = await CaregiverModel.findOne({ email: data.email });
+
+  if (existingUser || existingCaregiver) {
+    throw new ApiError("Email already exists", 400);
+  }
+
+  return Userlog.create(data);
+};
 
 const loginUser=async (data)=>{
 let userDoc=await Userlog.findOne({email:data.email}).select("+password");
@@ -39,7 +48,10 @@ const getUserById=(id)=>Userlog.findById(id);
 //forget pass
 const forgotPassword = async (data, protocol, host) => {
   // STEP 1 ── Find user by posted email
-  const user = await Userlog.findOne({ email: data.email });
+  let user = await Userlog.findOne({ email: data.email });
+ if (!user) {
+  user = await CaregiverModel.findOne({ email: data.email });
+}
   if (!user) {
     throw new ApiError("There is no user with that email address", 404);
   }
@@ -98,11 +110,16 @@ const resetPassword = async (plainToken, newPassword, passwordConfirmation) => {
     .digest("hex");
  
   // Find user whose token matches AND hasn't expired yet
-  const user = await Userlog.findOne({
+  let user = await Userlog.findOne({
     passwordResetToken: hashedToken,
     passwordResetExpires: { $gt: Date.now() },
   });
- 
+ if (!user) {
+  user = await CaregiverModel.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+ }
   if (!user) {
     throw new ApiError("Token is invalid or has expired. Please request a new one.", 400);
   }
@@ -148,7 +165,10 @@ const resetPassword = async (plainToken, newPassword, passwordConfirmation) => {
  const updatePassword = async (userId, currentPassword, newPassword, passwordConfirmation) => {
   // STEP 1 — جيب الـ user من الـ DB مع الـ password
   // (الـ password عنده select:false في بعض الـ schemas — هنا بنجبره صراحةً)
-  const user = await Userlog.findById(userId).select("+password");
+  let user = await Userlog.findById(userId).select("+password");
+  if (!user) {
+  user = await CaregiverModel.findById(userId).select("+password");
+}
   if (!user) throw new ApiError("User not found", 404);
  
   // STEP 2 — تحقق إن الـ current password صح

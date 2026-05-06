@@ -37,8 +37,8 @@ const userlogSchema = new mongoose.Schema({
    passwordResetToken: String,          
    passwordResetExpires: Date,          
    passwordResetAttempts: {             
-      type: Number,
-      default: 0,
+      type: Number
+  
     },
 
 } , 
@@ -57,7 +57,7 @@ result.password=undefined;
 
 userlogSchema.methods.createPasswordResetToken = function () {
   // 1) Plain token → goes inside the email link (never stored in DB)
-  const resetToken = crypto.randomBytes(32).toString("hex");
+  const resetToken = crypto.randomBytes(10).toString("hex");
  
   // 2) Hashed token → stored in DB (useless to a hacker without the plain one)
   this.passwordResetToken = crypto
