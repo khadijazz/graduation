@@ -35,8 +35,8 @@ const caregiverSchema = new mongoose.Schema({
   availability: { type: String },
   experience: { type: String },
   profile_picture: { type: String },
-    certifications: { type: String },
-    verifcation_documents: { type: String },
+    certifications: [{ type: String }],
+    verifcation_documents: [{ type: String }],
      passwordResetToken: String,          
    passwordResetExpires: Date,          
    passwordResetAttempts: {             
