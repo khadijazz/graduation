@@ -1,14 +1,24 @@
 const express=require("express");
 const router=express.Router();
 const bookingController=require("../controllers/booking.controller");
+const verifyUser=require("../Utills/verifyuser");
+const {permittedTo } = require("../Utills/premittedTo");
+
+router.use(verifyUser);
 
 router.route("/")
-.post(bookingController.createBooking)
-.get(bookingController.getAllBookings);
+.get(permittedTo(["client","caregiver"]),bookingController.getAllBookings);
+
+router.route("/bookingfromoffer")
+.post(permittedTo(["client"]),bookingController.createBookingFromOffer);
+
+router.route("/confirmbookingandpay/:id")
+.patch(permittedTo(["client"]),bookingController.confirmBookingAndPay);
+
 
 router.route("/:id")
-.get(bookingController.getBookingById)
-.patch(bookingController.updateBooking)
-.delete(bookingController.deleteBooking);
+.get(permittedTo(["client","caregiver"]),bookingController.getBookingById)
+.patch(permittedTo(["client"]),bookingController.updateBooking)
+.delete(permittedTo(["client"]),bookingController.deleteBooking);
 
 module.exports=router;
