@@ -47,7 +47,7 @@ res.status(200).json({
     status:"success",
     data:Task
 })
-}
+};
 exports.deleteAllTasks=async (req,res,next)=>{
 const Task=await taskServices.deleteAllTasks();
 res.status(200).json({
@@ -55,4 +55,5 @@ res.status(200).json({
     status:"success",
     data:Task
 })
-}
+};
+

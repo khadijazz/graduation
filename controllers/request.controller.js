@@ -1,35 +1,24 @@
-const request = require("../models/request.model");
+const requestModel = require("../models/request.model");
+const requestService = require("../services/request.services");
 ////
 exports.createRequest = async (req, res, next) => {
     const {client,caregiver,service,location,date,time,duration,notes,status,propsed_price} = req.body;
-    const request = await request.create({client,caregiver,service,location,date,time,duration,notes,status,propsed_price});
+    const request = await requestService.createrequest({client,caregiver,service,location,date,time,duration,notes,status,propsed_price});
     res.status(201).json({
         message: "Request created successfully",
         data: request,
     });
 };
 
-exports.getAllRequests = async (req, res, next) => {
-    const requests = await Request.find()
-      .populate("client", "name phone")
-      .populate("caregiver", "name phone")
-      .populate("service", "serviceType");
-
-    res.status(200).json({
-      data: requests,
-    });
-};
-
 exports.getMyRequests = async (req, res, next) => {
-    const requests = await Request.find({ client: req.user._id })
-      .populate("service", "serviceType")
-      .populate("caregiver", "name phone");
-
+    const requests = await requestService.getmyrequests();
     res.status(200).json({
-      data: requests,
+        message: "Requests fetched successfully",
+        data: requests,
     });
-  
 };
+
+
 
 
 exports.respondToRequest = async (req, res, next) => {
@@ -58,6 +47,17 @@ exports.respondToRequest = async (req, res, next) => {
       data: request,
     });
 };
+
+exports.confirmbooking=async(id)=>{
+   const findbooking = booking.findById(id);
+   if(!findbooking){
+    throw new Error("booking not found");
+   }
+   findbooking.status="confirmed";
+   await findbooking.save();
+   return findbooking;
+}
+
 
 
 

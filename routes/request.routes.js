@@ -7,10 +7,13 @@ router.use(verifyUser);
 
 router.route("/")
 .post(permittedTo(["client"]),requestController.createRequest)
-.get(requestController.getAllRequests);
+.get(permittedTo(["client","caregiver","admin"]),requestController.getAllRequests);
+
+router.route("/:requestId/offers")
+.get(permittedTo(["client"]),requestController.getOffers);
 
 router.route("/:id")
-.get(permittedTo(["client","caregiver","admin"]),requestController.getRequestById)
+.get(permittedTo(["client","caregiver","admin"]),requestController.getrequestbyid)
 .patch(permittedTo(["client","caregiver","admin"]),requestController.updateRequest)
 .delete(permittedTo(["client","caregiver","admin"]),requestController.deleteRequest);
 

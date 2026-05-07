@@ -11,6 +11,7 @@ const tasksRouter=require("./routes/tasks.routes");
 const bookingRouter=require("./routes/booking.router");
 const userlogRouter=require("./routes/userlog.router");
 const paymentRouter = require('./routes/payment.router');
+const offerRouter = require('./routes/offer.route');
 const {ApiError}=require("./Utills/ApiError");
 
 app.get('/', (req, res) => {
@@ -37,7 +38,7 @@ app.use("/transaction",transactionRouter);
 app.use("/tasks",tasksRouter);
 app.use("/booking",bookingRouter);
 app.use('/payment', paymentRouter);
-
+app.use('/offer', offerRouter);
 
 app.all("{*path}",(req,res,next)=>{
 res.status(404).json({

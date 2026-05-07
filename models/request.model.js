@@ -1,61 +1,37 @@
 const mongoose = require('mongoose');
 
   const requestSchema = new mongoose.Schema({
+  client: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+  },
 
-    client: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-
-    caregiver: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-   service: {
+  service: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Service",
     required: true,
-   },
+  },
 
-    location: {
-      type: String,
-      required: true,
-      trim: true,
-    },
+  location: String,
+  date: Date,
+  time: String,
+  duration: String,
+  notes: String,
 
-    date: {
-      type: Date,
-      required: true,
-    },
+  status: {
+    type: String,
+    enum: [
+      "PENDING",
+      "BOOKED",
+      "COMPLETED",
+      "CANCELLED"
+    ],
+    default: "PENDING",
+  },
 
-    time: {
-      type: String,
-      required: true,
-    },
+}, { timestamps: true });
 
-    duration: {
-      type: String,
-      required: true,
-    },
+const Request = mongoose.model("request", requestSchema);
+module.exports = Request;
 
-    notes: {
-      type: String,
-      required: true,
-    },
-
-    status: {
-      type: String,
-      enum: ["PENDING", "ACCEPTED", "REJECTED","COMPLETED","CANCELLED"],
-      default: "PENDING",
-    },
-propsed_price: {
-  type: Number,
-  required: true,
-},
-    
-  } , { timestamps: true });
-
-  const RequestModel = mongoose.model("Request", requestSchema);
-  module.exports = { RequestModel };
