@@ -1,39 +1,87 @@
-
 const requestModel = require("../models/request.model");
-const { ApiFeature } = require("../Utills/ApiFeature");
 const offerModel = require("../models/offer.model");
+const { ApiFeature } = require("../Utills/ApiFeature");
+const { ApiError } = require("../Utills/ApiError");
 
+const createRequestService = (data) =>
+  requestModel.create(data);
 
-const createRequestService = async (req, res, next) => {
-    const {client,caregiver,service,location,date,time,duration,notes,status,propsed_price} = req.body;
-    const request = await requestModel.create({client,caregiver,service,location,date,time,duration,notes,status,propsed_price});
-    
+const getmyrequests = (userId) =>
+  requestModel
+    .find({ client: userId })
+    .populate("client", "name phone")
+    .populate("service", "serviceType");
+
+const getAvailableRequests = () =>
+  requestModel
+    .find({ status: "PENDING" })
+    .populate("client", "_id name phone")
+    .populate("service", "serviceType")
+    .sort({ createdAt: -1 });
+
+const getallrequests = (queryParams) => {
+  const apiFeature = new ApiFeature(
+    requestModel.find({}),
+    queryParams
+  );
+
+  apiFeature.paginate();
+  apiFeature.sort();
+  apiFeature.projection();
+
+  return apiFeature.dbQuery;
 };
 
-const getmyrequests=async(req,res,next) => {
-    const requests = await requestModel.find({ client: req.user._id })
-     .populate("client", "name phone")
-      .populate("caregiver", "name phone")
-      .populate("service", "serviceType");
+const getrequestbyid = async (id) => {
+  const request = await requestModel
+    .findById(id)
+    .populate("client", "name phone")
+    .populate("service", "serviceType");
 
+  if (!request) {
+    throw new ApiError("Request not found", 404);
+  }
+
+  return request;
 };
 
+const updaterequest = (id, updates) =>
+  requestModel.findByIdAndUpdate(
+    id,
+    updates,
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+const deleterequest = (id) =>
+  requestModel.findByIdAndDelete(id);
 
 const getOffers = async (requestId, userId) => {
   const request = await requestModel.findById(requestId);
 
   if (!request) {
-    throw new Error("Request not found");
+    throw new ApiError("Request not found", 404);
   }
 
   if (request.client.toString() !== userId.toString()) {
-    throw new Error("Unauthorized");
+    throw new ApiError("Unauthorized", 403);
   }
 
-  
-  const offers = await offerModel.find({ request: requestId })
+  return await offerModel
+    .find({ request: requestId })
     .populate("caregiver", "name rating experience")
     .sort({ createdAt: -1 });
+};
 
-  return offers;
+module.exports = {
+  createRequestService,
+  getmyrequests,
+  getAvailableRequests,
+  getallrequests,
+  getrequestbyid,
+  updaterequest,
+  deleterequest,
+  getOffers,
 };

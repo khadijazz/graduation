@@ -4,13 +4,18 @@ const mongoose = require('mongoose');
   client: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
-    required: true,
+  
   },
 
   service: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Service",
-    required: true,
+  
+  },
+   caregiver: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "caregiver",
+
   },
 
   location: String,

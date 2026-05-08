@@ -2,7 +2,7 @@ const Wallet = require("../models/Wallet");
 const Transaction = require("../models/Transaction");
 const {ApiFeatures}=require("../Utills/ApiFeature")
 
-exports.getMyWalletService = async (req, res, next) => {
+const getMyWalletService = async (req, res, next) => {
     const wallet = await Wallet.findOne({ user: req.user._id });
     res.status(200).json({
         message: "Wallet fetched successfully",
@@ -11,7 +11,7 @@ exports.getMyWalletService = async (req, res, next) => {
 };
 
 
-exports.depositService = async (userId, amount) => {
+const depositService = async (userId, amount) => {
   
   if (!amount || amount <= 0) {
     throw new Error("Invalid amount");
@@ -45,6 +45,6 @@ exports.depositService = async (userId, amount) => {
 
 
 module.exports = {
-    getMyWalletService,
+  getMyWalletService,
     depositService,
 };  
