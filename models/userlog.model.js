@@ -34,12 +34,9 @@ const userlogSchema = new mongoose.Schema({
       enum: ["client", "caregiver", "admin"],
       default: "client",
     },
-   passwordResetToken: String,          
-   passwordResetExpires: Date,          
-   passwordResetAttempts: {             
-      type: Number
-  
-    },
+   passwordResetToken: {type: String,default: null},
+   passwordResetExpires: {type: Date,default: null},          
+   passwordResetAttempts: {type: Number,default: 0}
 
 } , 
 { timestamps: true });

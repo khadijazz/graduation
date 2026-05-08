@@ -45,7 +45,7 @@ const { ApiFeature } = require("../Utills/ApiFeature");
 };
 
 const getallbooking = (queryParams) =>{
-    const apiFeature=new ApiFeature(booking.find({}),queryParams);
+    const apiFeature=new ApiFeature(Booking.find({}),queryParams);
     apiFeature.paginate();
     apiFeature.sort();
     apiFeature.projection();

@@ -25,7 +25,7 @@ exports.createOffer = async (req, res) => {
 
   exports.deleteOffer = async (req, res, next) => {
   const {offerId}=req.params;
-  const offer=await offerService.deleteOfferService(offerId);
+const offer = await offerService.deleteOfferService(offerId, req.user._id);
   res.status(200).json({
     message: "offer deleted successfully",
     success: true,

@@ -16,7 +16,7 @@ exports.createRequest = async (req, res, next) => {
 
 
 exports.getMyRequests = async (req, res, next) => {
-    const requests = await requestService.getmyrequests();
+    const requests = await requestService.getmyrequests(req.user._id);
     res.status(200).json({
         message: "Requests fetched successfully",
         data: requests,

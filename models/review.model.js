@@ -3,12 +3,12 @@ const mongoose = require("mongoose");
 const reviewSchema = new mongoose.Schema({
     client: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: "Userlog",
         required: true,
     },
     caregiver: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        ref: "Userlog",
         required: true,
     },
     service: {
@@ -32,7 +32,7 @@ const reviewSchema = new mongoose.Schema({
     
     feedback: {
         type: String,
-        required: true,
+        default: "",
     },
 
 } , {timestamps: true})
