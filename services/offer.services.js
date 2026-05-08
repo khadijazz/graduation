@@ -23,16 +23,15 @@ const createOfferService = async (req, res, next) => {
   });
 };
 
-const deleteOfferService=async (req, res, next) => {
-  const {offerId}=req.params;
+const deleteOfferService=async (offerId,userId) => {
   const offer=await offerModel.findById(offerId);
   if (!offer) {
     throw new Error("Offer not found");
   }
-  if (offer.caregiver.toString() !== req.user._id.toString()) {
+  if (offer.caregiver.toString() !== userId.toString()) {
     throw new Error("Unauthorized");
   }
   await offer.deleteOne();
 };
 
-exports.createOfferService = {createOfferService};
+module.exports = {createOfferService,deleteOfferService};

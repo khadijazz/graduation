@@ -3,7 +3,7 @@ const bookingService = require("../services/booking.services");
 
 exports.createBookingFromOffer = async (req, res, next) => {
   const {offerId,}=req.params;
-  const Booking = await bookingService.createBookingFromOffer(offerId, caregiverId);
+  const Booking = await bookingService.createBookingFromOffer(offerId, req.user._id);
   res.status(201).json({
     message: "booking created successfully",
     success: true,
