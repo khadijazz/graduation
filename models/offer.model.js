@@ -11,7 +11,6 @@ const offerSchema = new mongoose.Schema({
  },
  price:{
     type:Number,
-    required:true
  },
  notes:{
     type:String,
@@ -19,7 +18,7 @@ const offerSchema = new mongoose.Schema({
  status:{
     type:String,
     enum:["pending","accepted","rejected"],
-    default:"pending"
+
  },
 
 

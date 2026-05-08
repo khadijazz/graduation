@@ -37,6 +37,6 @@ const mongoose = require('mongoose');
 
 }, { timestamps: true });
 
-const Request = mongoose.model("request", requestSchema);
+const Request = mongoose.model("Request", requestSchema);
 module.exports = Request;
 

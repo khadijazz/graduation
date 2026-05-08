@@ -2,7 +2,7 @@ const offerModel = require("../models/offer.model");
 const requestModel = require("../models/request.model");
 const { ApiFeature } = require("../Utills/ApiFeature");
 
-const createOfferService = async (req, res, next) => {
+const createOfferService = async (user,data) => {
   const { requestId, price, notes } = data;
 
   const request = await requestModel.findById(requestId);
@@ -33,5 +33,41 @@ const deleteOfferService=async (offerId,userId) => {
   }
   await offer.deleteOne();
 };
+const getOffers = async (requestId, userId) => {
+  const request = await requestModel.findById(requestId);
 
-module.exports = {createOfferService,deleteOfferService};
+  if (!request) {
+    throw new ApiError("Request not found", 404);
+  }
+
+  if (request.client.toString() !== userId.toString()) {
+    throw new ApiError("Unauthorized", 403);
+  }
+
+  return await offerModel
+    .find({ request: requestId })
+    .populate("caregiver", "name rating experience")
+    .sort({ createdAt: -1 });
+};
+
+const respondToOffer = async (offerId, userId, status) => {
+  const offer = await offerModel.findById(offerId).populate("request");
+  if (!offer) throw new Error("Offer not found");
+
+  if (offer.request.client.toString() !== userId.toString())
+    throw new Error("Unauthorized");
+
+  if (status === "accepted") {
+    offer.status = "accepted";
+  } else if (status === "rejected") {
+    offer.status = "rejected";
+  } else {
+    throw new Error("Invalid action");
+  }
+
+  await offer.save();
+  return offer;
+};
+
+
+module.exports = {createOfferService,deleteOfferService,getOffers,respondToOffer};

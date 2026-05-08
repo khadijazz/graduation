@@ -90,17 +90,3 @@ exports.getAvailableRequests = async (req, res) => {
   });
 };
 
-exports.getallrequests = async (req, res, next) => {
-    const requests = await requestService.getallrequests();
-    res.status(200).json({
-        message: "Requests fetched successfully",
-        data: requests,
-    });
-};
- exports.getoffers = async (req, res, next) => {
-     const offers = await requestService.getoffers();
-     res.status(200).json({
-         message: "Offers fetched successfully",
-         data: offers,
-     });
- };
