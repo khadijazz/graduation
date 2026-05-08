@@ -15,12 +15,11 @@ router.route('/:id')
 .get(controller.getCareGiver)
 .patch(controller.updateCareGiver)
 .delete(permittedTo(["admin"]),controller.deleteCareGiver)  
-router.post('/signup',controller.newCaregiver)
+router.post('/signup',upload.fields([
+    { name: "profile_picture", maxCount: 1 },
+    { name: "certifications", maxCount: 5 },
+    { name: "verifcation_documents", maxCount: 5 }
+  ]),controller.newCaregiver)
 
-// upload.fields([
-//     { name: "profile_picture", maxCount: 1 },
-//     { name: "certifications", maxCount: 5 },
-//     { name: "verifcation_documents", maxCount: 5 }
-//   ]),
 
 module.exports=router;

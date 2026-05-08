@@ -5,17 +5,17 @@ const {ApiError}=require("../Utills/ApiError");
 exports.newCaregiver=  async (req, res) => {
           const caregiverData = req.body;
 
-  //   if (req.files.profile_picture) {
-  //   caregiverData.profile_picture = req.files.profile_picture[0].path;
-  // }
+    if (req.files.profile_picture) {
+  caregiverData.profile_picture = req.files.profile_picture[0].path;
+   }
 
-  // if (req.files.certifications) {
-  //   caregiverData.certifications = req.files.certifications.map(file => file.path);
-  // }
+ if (req.files.certifications) {
+  caregiverData.certifications = req.files.certifications.map(file => file.path);
+  }
 
-  // if (req.files.verifcation_documents) {
-  //   caregiverData.verifcation_documents = req.files.verifcation_documents.map(file => file.path);
-  // }
+ if (req.files.verifcation_documents) {
+  caregiverData.verifcation_documents = req.files.verifcation_documents.map(file => file.path);
+  }
 
         const caregiver = await caregiverServices.createcaregiver(caregiverData); 
         res.status(201).json({
