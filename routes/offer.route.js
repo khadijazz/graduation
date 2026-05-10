@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const verifyUser = require("../Utills/verifyuser");
+const verifyUser = require("../Utills/verifyUser");
 const offerController = require("../controllers/offer.controller");
 const {permittedTo} =require("../Utills/premittedTo");
 router.use(verifyUser)

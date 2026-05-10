@@ -1,12 +1,22 @@
 const {ApiError}=require("../Utills/ApiError");
 const userlogServices=require("../services/userlog.services");
-
-
-
+const { uploadToCloudinary } = require("../Utills/uploadCloudinary");
 
 
 exports.createuserlog=async(req,res,next)=>{
-    const userlog = await userlogServices.createUserLog(req.body);
+   const userData = { ...req.body };
+
+    if (req.files?.profile_picture) {
+      userData.profile_picture = await uploadToCloudinary(
+        req.files.profile_picture[0]
+      );
+    }
+    if (req.files?.national_id) {
+      userData.national_id = await uploadToCloudinary(
+        req.files.national_id[0]
+      );
+    }
+  const userlog = await userlogServices.createUserLog(userData);
     userlog.password=undefined;
     res.status(201).json({
       status: "success",

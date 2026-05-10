@@ -31,6 +31,7 @@ const caregiverSchema = new mongoose.Schema({
 
     }, 
   role: { type: String ,default:"caregiver"},
+  speciality:{type:String, enum:["elderly care","child care","pet care","medical care"]},
   price: { type: Number },
   availability: { type: String },
   experience: { type: String },

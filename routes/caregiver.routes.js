@@ -1,8 +1,8 @@
 const express = require("express");
-const router=express.Router();
-const controller=require("../controllers/caregiver.controller")
-const verifyUser=require("../Utills/verifyuser")
-const upload = require("../Utills/uploadCloudinary");
+const router = express.Router();
+const controller = require("../controllers/caregiver.controller");
+const verifyUser = require("../Utills/verifyUser");
+const {upload} = require("../Utills/uploadCloudinary");
 
 const {permittedTo} =require("../Utills/premittedTo");
 

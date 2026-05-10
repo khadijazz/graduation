@@ -31,9 +31,12 @@ const userlogSchema = new mongoose.Schema({
 
     role: {
       type: String,
-      enum: ["client", "caregiver", "admin"],
+      enum: ["client"],
       default: "client",
     },
+ profile_picture: String,
+national_id: String,
+
    passwordResetToken: {type: String,default: null},
    passwordResetExpires: {type: Date,default: null},          
    passwordResetAttempts: {type: Number,default: 0}
