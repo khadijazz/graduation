@@ -58,7 +58,6 @@ const ChatSessionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Update lastMessageAt whenever a message is added
 ChatSessionSchema.pre("save", function () {
   if (this.messages && this.messages.length > 0) {
     this.lastMessageAt = new Date();

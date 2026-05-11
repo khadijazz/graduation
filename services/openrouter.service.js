@@ -3,9 +3,8 @@ const axios = require("axios");
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 const MODEL = process.env.OPENROUTER_MODEL || "openai/gpt-4o";
 
-/**
- * Build the system prompt with the fixed specialties and safety rules
- */
+//Build the system prompt with the fixed specialties and safety rules
+ 
 const buildSystemPrompt = (specialties) => {
   const specialtyList = specialties
     .map((s) => `- ${s}`)
@@ -52,9 +51,8 @@ ${specialtyList}
 `.trim();
 };
 
-/**
- * Call OpenRouter API with conversation history
- */
+// Call OpenRouter API with conversation history
+
 const callOpenRouter = async (messages, specialties) => {
   const systemPrompt = buildSystemPrompt(specialties);
 

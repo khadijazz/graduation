@@ -1,7 +1,7 @@
 const ChatSession = require("../models/Chat.model");
 const { callOpenRouter } = require("./openrouter.service");
 
-// ✅ الـ specialties ثابتة — نفس الـ enum الموجود في Caregiver model
+
 const CAREGIVER_SPECIALTIES = [
   "elderly care",
   "child care",
@@ -9,11 +9,8 @@ const CAREGIVER_SPECIALTIES = [
   "medical care",
 ];
 
-/**
- * Get or create an active chat session for a user
- */
+
 const getOrCreateSession = async (userId, sessionId = null) => {
-  // If sessionId provided, find that specific session
   if (sessionId) {
     const session = await ChatSession.findOne({
       _id: sessionId,
@@ -22,7 +19,6 @@ const getOrCreateSession = async (userId, sessionId = null) => {
     if (session) return session;
   }
 
-  // Find the most recent active session for this user
   let session = await ChatSession.findOne({
     userId,
     isActive: true,
@@ -40,19 +36,14 @@ const getOrCreateSession = async (userId, sessionId = null) => {
   return session;
 };
 
-/**
- * Validate that the recommended specialty is one of the allowed values
- * منع الـ AI من اختراع تخصصات مش موجودة في التطبيق
- */
+
 const validateSpecialty = (recommendedSpecialty) => {
   if (!recommendedSpecialty) return null;
   const normalized = recommendedSpecialty.toLowerCase().trim();
   return CAREGIVER_SPECIALTIES.includes(normalized) ? normalized : null;
 };
 
-/**
- * Build the conversation history for the AI (last N messages)
- */
+
 const buildConversationHistory = (messages, limit = 10) => {
   const recent = messages.slice(-limit);
   return recent.map((msg) => ({
@@ -61,29 +52,28 @@ const buildConversationHistory = (messages, limit = 10) => {
   }));
 };
 
-/**
- * Main service: Send a user message and get AI response
- */
+// Main service: Send a user message and get AI response
+
 const sendMessage = async (userId, userMessage, sessionId = null) => {
-  // 1. Get or create session
+  // Get or create session
   const session = await getOrCreateSession(userId, sessionId);
 
-  // 2. Pass the fixed specialties list to AI
+  // Pass the fixed specialties list to AI
   const specialties = CAREGIVER_SPECIALTIES;
 
-  // 3. Build conversation history for AI context
+  // Build conversation history for AI context
   const conversationHistory = buildConversationHistory(session.messages);
   conversationHistory.push({ role: "user", content: userMessage });
 
-  // 4. Call OpenRouter AI
+  // Call OpenRouter AI
   const aiResponse = await callOpenRouter(conversationHistory, specialties);
 
-  // 5. Validate recommended specialty against allowed list (safety: no fake specialties)
+  //  Validate recommended specialty against allowed list (safety: no fake specialties)
   aiResponse.recommendedSpecialty = validateSpecialty(
     aiResponse.recommendedSpecialty
   );
 
-  // 6. Save user message to session
+  // Save user message to session
   session.messages.push({
     role: "user",
     content: userMessage,
@@ -91,7 +81,7 @@ const sendMessage = async (userId, userMessage, sessionId = null) => {
     structuredResponse: {},
   });
 
-  // 7. Save bot response to session
+  //  Save bot response to session
   session.messages.push({
     role: "assistant",
     content: aiResponse.botMessage,
