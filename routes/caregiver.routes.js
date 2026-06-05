@@ -1,15 +1,8 @@
 const express = require("express");
-<<<<<<< HEAD
-const router=express.Router();
-const controller=require("../controllers/caregiver.controller")
-const verifyUser=require("../Utills/verifyuser")
-const upload = require("../Utills/uploadCloudinary");
-=======
 const router = express.Router();
 const controller = require("../controllers/caregiver.controller");
 const verifyUser = require("../Utills/verifyUser");
-const {upload} = require("../Utills/uploadCloudinary");
->>>>>>> 59f9fb5c7893a7e10124107dc3346d771989e0b1
+const { upload } = require("../Utills/uploadCloudinary"); 
 
 const {permittedTo} =require("../Utills/premittedTo");
 
@@ -30,3 +23,4 @@ router.post('/signup',upload.fields([
 
 
 module.exports=router;
+

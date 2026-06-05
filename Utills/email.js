@@ -9,7 +9,6 @@ const nodemailer = require("nodemailer");
  * @param {string} options.message - Plain-text body
  */
 const sendEmail = async (options) => {
-<<<<<<< HEAD
   // STEP 1 ── Create the transporter (the "postman" that hands off to Gmail)
   const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -25,16 +24,6 @@ const sendEmail = async (options) => {
   });
 
   // STEP 2 ── Define email options
-=======
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USERNAME, 
-      pass: process.env.EMAIL_PASSWORD, 
-     
-    },
-  });
->>>>>>> 59f9fb5c7893a7e10124107dc3346d771989e0b1
   const mailOptions = {
     from: `"Ehtmam Team" <${process.env.EMAIL_USERNAME}>`,
     to: options.email,
@@ -42,11 +31,8 @@ const sendEmail = async (options) => {
     text: options.message,
   };
 
-<<<<<<< HEAD
   // STEP 3 ── Send the email
-=======
->>>>>>> 59f9fb5c7893a7e10124107dc3346d771989e0b1
   await transporter.sendMail(mailOptions);
 };
 
-module.exports = sendEmail;
+module.exports = sendEmail;

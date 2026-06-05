@@ -6,7 +6,7 @@ const { uploadToCloudinary } = require("../Utills/uploadCloudinary");
 exports.newCaregiver=  async (req, res) => {
           const caregiverData = req.body;
 
-<<<<<<< HEAD
+
     if (req.files.profile_picture) {
   caregiverData.profile_picture = req.files.profile_picture[0].path;
    }
@@ -18,7 +18,6 @@ exports.newCaregiver=  async (req, res) => {
  if (req.files.verifcation_documents) {
   caregiverData.verifcation_documents = req.files.verifcation_documents.map(file => file.path);
   }
-=======
  if (req.files?.profile_picture) {
 
   caregiverData.profile_picture =
@@ -52,7 +51,6 @@ if (req.files?.verifcation_documents) {
 
     );
 }
->>>>>>> 59f9fb5c7893a7e10124107dc3346d771989e0b1
 
         const caregiver = await caregiverServices.createcaregiver(caregiverData); 
         res.status(201).json({
