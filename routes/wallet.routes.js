@@ -6,8 +6,7 @@ const {permittedTo} =require("../Utills/premittedTo");
 router.use(verifyUser);
 
 router.route("/")
-.post(permittedTo(["client","caregiver"]),walletController.createWallet)
-.get(permittedTo(["admin"]),walletController.getAllWallet);
+.get(permittedTo(["client","caregiver"]),walletController.getWalletBalance)
 
 router.route("/:id")
 .get(permittedTo(["client","caregiver","admin"]),walletController.getWalletById)

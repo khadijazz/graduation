@@ -1,5 +1,5 @@
-const Wallet = require("../models/Wallet");
-const Transaction = require("../models/Transaction");
+const Wallet = require("../models/wallet.model");
+const Transaction = require("../models/transaction.model");
 const {ApiFeatures}=require("../Utills/ApiFeature")
 
 const getMyWalletService = async (req, res, next) => {
@@ -10,6 +10,18 @@ const getMyWalletService = async (req, res, next) => {
     });
 };
 
+const getWalletBalance = async (userId) => {
+
+  const wallet = await Wallet.findOne({
+    user: userId
+  });
+
+  if (!wallet) {
+    throw new Error("Wallet not found");
+  }
+
+  return wallet;
+};
 
 const depositService = async (userId, amount) => {
   
@@ -46,5 +58,6 @@ const depositService = async (userId, amount) => {
 
 module.exports = {
   getMyWalletService,
+  getWalletBalance,
     depositService,
 };  
