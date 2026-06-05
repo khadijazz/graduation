@@ -2,6 +2,12 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
+const addressSchema = new mongoose.Schema({
+    city: String,
+    street: String,
+    building: String
+});
+
 const userlogSchema = new mongoose.Schema({
   full_name:{
     type: String,
@@ -29,6 +35,8 @@ const userlogSchema = new mongoose.Schema({
 
     }, 
 
+    address : addressSchema,
+    
     role: {
       type: String,
       enum: ["client", "caregiver", "admin"],
