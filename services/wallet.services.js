@@ -2,12 +2,9 @@ const Wallet = require("../models/wallet.model");
 const Transaction = require("../models/transaction.model");
 const {ApiFeatures}=require("../Utills/ApiFeature")
 
-const getMyWalletService = async (req, res, next) => {
-    const wallet = await Wallet.findOne({ user: req.user._id });
-    res.status(200).json({
-        message: "Wallet fetched successfully",
-        data: wallet,
-    });
+const getMyWalletService = async (userId) => {
+    const wallet = await Wallet.findOne({ user: userId });
+    
 };
 
 const getWalletBalance = async (userId) => {
