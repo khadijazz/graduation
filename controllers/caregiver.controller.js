@@ -1,10 +1,12 @@
 const caregiverServices = require("../services/caregiver.services");
 const userlogServices = require("../services/userlog.services");
 const {ApiError}=require("../Utills/ApiError");
+const { uploadToCloudinary } = require("../Utills/uploadCloudinary");
 
 exports.newCaregiver=  async (req, res) => {
           const caregiverData = req.body;
 
+<<<<<<< HEAD
     if (req.files.profile_picture) {
   caregiverData.profile_picture = req.files.profile_picture[0].path;
    }
@@ -16,6 +18,41 @@ exports.newCaregiver=  async (req, res) => {
  if (req.files.verifcation_documents) {
   caregiverData.verifcation_documents = req.files.verifcation_documents.map(file => file.path);
   }
+=======
+ if (req.files?.profile_picture) {
+
+  caregiverData.profile_picture =
+    await uploadToCloudinary(
+      req.files.profile_picture[0]
+    );
+}
+
+if (req.files?.certifications) {
+
+  caregiverData.certifications =
+    await Promise.all(
+
+      req.files.certifications.map(
+        async (file) =>
+          await uploadToCloudinary(file)
+      )
+
+    );
+}
+
+if (req.files?.verifcation_documents) {
+
+  caregiverData.verifcation_documents =
+    await Promise.all(
+
+      req.files.verifcation_documents.map(
+        async (file) =>
+          await uploadToCloudinary(file)
+      )
+
+    );
+}
+>>>>>>> 59f9fb5c7893a7e10124107dc3346d771989e0b1
 
         const caregiver = await caregiverServices.createcaregiver(caregiverData); 
         res.status(201).json({

@@ -14,16 +14,26 @@
     "axios": "^1.16.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
+<<<<<<< HEAD
     "cloudinary": "^1.41.3",
     "dot-env": "^0.0.1",
+=======
+    "cloudinary": "^2.10.0",
+>>>>>>> 59f9fb5c7893a7e10124107dc3346d771989e0b1
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.0.1",
     "morgan": "^1.10.1",
     "multer": "^2.1.1",
+<<<<<<< HEAD
     "multer-storage-cloudinary": "^4.0.0",
     "nodemailer": "^8.0.7"
+=======
+    "nodemailer": "^8.0.7",
+    "streamifier": "^0.1.1",
+    "uuid": "^14.0.0"
+>>>>>>> 59f9fb5c7893a7e10124107dc3346d771989e0b1
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
