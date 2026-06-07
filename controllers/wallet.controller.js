@@ -126,4 +126,6 @@ exports.deleteWallet = async (req, res, next) => {
     message: "Wallet deleted successfully",
     data: wallet,
   });
-};
+};
+
+

@@ -5,18 +5,35 @@ const bcrypt=require("bcryptjs");
 const crypto = require("crypto"); 
 const {ApiError}=require("../Utills/ApiError");
 const sendEmail = require("../Utills/email");
+const wallet=require("../models/wallet.model");
 
 
 const createUserLog = async (data) => {
-  const existingUser = await Userlog.findOne({ email: data.email });
-  const existingCaregiver = await CaregiverModel.findOne({ email: data.email });
+
+  const existingUser = await Userlog.findOne({
+    email: data.email
+  });
+
+  const existingCaregiver = await CaregiverModel.findOne({
+    email: data.email
+  });
 
   if (existingUser || existingCaregiver) {
     throw new ApiError("Email already exists", 400);
   }
 
-  return Userlog.create(data);
+  const user = await Userlog.create(data);
+
+  await Wallet.create({
+    user: user._id,
+    balance: 0,
+    totalDeposited: 0,
+    totalSpent: 0
+  });
+
+  return user;
 };
+ 
 
 const loginUser=async (data)=>{
 let userDoc=await Userlog.findOne({email:data.email}).select("+password");
@@ -35,6 +52,20 @@ const isTheOne=await bcrypt.compare(password,hashedSaltedPassword);
 if(!isTheOne){
     throw new ApiError("email or password is wrong",400);
 }
+let wallet = await Wallet.findOne({
+  user: userDoc._id
+});
+
+if (!wallet) {
+
+  await Wallet.create({
+    user: userDoc._id,
+    balance: 0,
+    totalDeposited: 0,
+    totalSpent: 0
+  });
+}
+
 return jwt.sign(
   {
     id: userDoc._id,
