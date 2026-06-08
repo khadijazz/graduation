@@ -3,8 +3,15 @@ const mongoose = require("mongoose");
 const transactionSchema = new mongoose.Schema({
   userlog: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Userlog",
+    refPath: "ownerModel",
     required: true,
+    alias: "user"
+  },
+  ownerModel: {
+    type: String,
+    required: true,
+    enum: ["Userlog", "Caregiver"],
+    default: "Userlog"
   },
 
   wallet: {
@@ -45,5 +52,9 @@ const transactionSchema = new mongoose.Schema({
   paymobTransactionId: String,
 
 }, { timestamps: true });
+
+transactionSchema.pre(['find', 'findOne', 'findOneAndUpdate', 'countDocuments', 'updateOne', 'deleteMany', 'deleteOne'], function() {
+  this.setQuery(this.model.translateAliases(this.getQuery()));
+});
 
 module.exports = mongoose.model("Transaction", transactionSchema);

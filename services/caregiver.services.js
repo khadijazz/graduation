@@ -1,5 +1,6 @@
 const caregiver=require("../models/caregiver.model");
 const userlog=require("../models/userlog.model");
+const Wallet=require("../models/wallet.model");
 const {ApiFeature}=require("../Utills/ApiFeature.js");
 const {ApiError}=require("../Utills/ApiError.js");
 
@@ -9,7 +10,23 @@ const createcaregiver = async (data) => {
 
   if (existingUser || existingCaregiver) {
     throw new ApiError("Email already exists", 400);
-  }  return caregiver.create(data);
+  }
+
+  const newCaregiver = await caregiver.create(data);
+
+  try {
+    await Wallet.create({
+      userlog: newCaregiver._id,
+      ownerModel: "Caregiver",
+      balance: 0,
+      holdBalance: 0
+    });
+  } catch (err) {
+    await caregiver.findByIdAndDelete(newCaregiver._id);
+    throw err;
+  }
+
+  return newCaregiver;
 };
 
 const getallcaregiver = (queryParams) =>{

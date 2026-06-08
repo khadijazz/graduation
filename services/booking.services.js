@@ -1,6 +1,7 @@
 const Booking = require("../models/booking.model");
 const Request=require("../models/request.model");
 const Offer=require("../models/offer.model");
+const Wallet = require("../models/wallet.model");
 const { ApiFeature } = require("../Utills/ApiFeature");
 
   const createBookingFromOffer = async (offerId, userId) => {

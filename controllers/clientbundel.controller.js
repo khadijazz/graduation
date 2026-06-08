@@ -1,9 +1,9 @@
 const clientBundleService = require("../services/clientbundel.services");
-const { ApiError } = require("../error/ApiError");
+const { ApiError } = require("../Utills/ApiError");
 const clientBundleModel = require("../models/clientbundel.model");  
 const bundleModel = require("../models/bundel.model");
-const Wallet = require("../models/Wallet");
-const Transaction = require("../models/Transaction");
+const Wallet = require("../models/wallet.model");
+const Transaction = require("../models/transaction.model");
 ////
 exports.chooseBundle = async (req, res, next) => {
  
@@ -31,7 +31,7 @@ exports.payBundle = async (req, res, next) => {
 
     const { clientBundleId } = req.body;
 
-    const clientBundle = await ClientBundle.findById(clientBundleId);
+    const clientBundle = await clientBundleModel.findById(clientBundleId);
 
     if (!clientBundle) {
       return res.status(404).json({ message: "Not found" });
@@ -76,7 +76,7 @@ exports.cancelBundle = async (req, res, next) => {
 
     const { clientBundleId } = req.params;
 
-    const clientBundle = await ClientBundle.findById(clientBundleId);
+    const clientBundle = await clientBundleModel.findById(clientBundleId);
 
     if (!clientBundle) {
       return res.status(404).json({ message: "Not found" });

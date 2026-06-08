@@ -5,7 +5,7 @@ const bcrypt=require("bcryptjs");
 const crypto = require("crypto"); 
 const {ApiError}=require("../Utills/ApiError");
 const sendEmail = require("../Utills/email");
-const wallet=require("../models/wallet.model");
+const Wallet = require("../models/wallet.model");
 
 
 const createUserLog = async (data) => {
@@ -22,7 +22,19 @@ const createUserLog = async (data) => {
     throw new ApiError("Email already exists", 400);
   }
 
-  const user = await Userlog.create(data)
+  const user = await Userlog.create(data);
+
+  try {
+    await Wallet.create({
+      userlog: user._id,
+      ownerModel: "Userlog",
+      balance: 0,
+      holdBalance: 0
+    });
+  } catch (err) {
+    await Userlog.findByIdAndDelete(user._id);
+    throw err;
+  }
 
   return user;
 };
@@ -44,19 +56,6 @@ const password=data.password;
 const isTheOne=await bcrypt.compare(password,hashedSaltedPassword);
 if(!isTheOne){
     throw new ApiError("email or password is wrong",400);
-}
-let wallet = await Wallet.findOne({
-  user: userDoc._id
-});
-
-if (!wallet) {
-
-  await Wallet.create({
-    user: userDoc._id,
-    balance: 0,
-    totalDeposited: 0,
-    totalSpent: 0
-  });
 }
 
 return jwt.sign(

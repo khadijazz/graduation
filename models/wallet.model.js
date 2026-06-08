@@ -3,13 +3,24 @@ const mongoose = require("mongoose");
 const walletSchema = new mongoose.Schema({
     userlog: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Userlog",
+        refPath: "ownerModel",
         required: true,
+        unique: true,
+        alias: "user"
+    },
+    ownerModel: {
+        type: String,
+        required: true,
+        enum: ["Userlog", "Caregiver"],
+        default: "Userlog"
     },
     balance: {
         type: Number,
         default: 0,
-        
+    },
+    holdBalance: {
+        type: Number,
+        default: 0
     },
      totalDeposited: {
     type: Number,
@@ -31,5 +42,9 @@ const walletSchema = new mongoose.Schema({
     },
    
 } , {timestamps: true})
+
+walletSchema.pre(['find', 'findOne', 'findOneAndUpdate', 'countDocuments', 'updateOne', 'deleteMany', 'deleteOne'], function() {
+  this.setQuery(this.model.translateAliases(this.getQuery()));
+});
 
 module.exports = mongoose.model("Wallet", walletSchema);
