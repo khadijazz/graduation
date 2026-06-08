@@ -4,28 +4,30 @@ const { uploadToCloudinary } = require("../Utills/uploadCloudinary");
 
 
 
-exports.createuserlog=async(req,res,next)=>{
-   const userData = { ...req.body };
+exports.createuserlog = async (req,res,next)=>{
 
-    if (req.files?.profile_picture) {
-      userData.profile_picture = await uploadToCloudinary(
-        req.files.profile_picture[0]
-      );
-    }
-    if (req.files?.national_id) {
-      userData.national_id = await uploadToCloudinary(
-        req.files.national_id[0]
-      );
-    }
+  const userData = { ...req.body };
+
+  if (req.files?.profile_picture) {
+    userData.profile_picture = await uploadToCloudinary(
+      req.files.profile_picture[0]
+    );
+  }
+
+  if (req.files?.national_id) {
+    userData.national_id = await uploadToCloudinary(
+      req.files.national_id[0]
+    );
+  }
+
+
   const userlog = await userlogServices.createUserLog(userData);
-    userlog.password=undefined;
-    res.status(201).json({
-      status: "success",
-      data: userlog
-    });
- 
-};
 
+  res.status(201).json({
+    status: "success",
+    data: userlog
+  });
+};
 exports.loginUser=async(req,res,next)=>{
     const token = await userlogServices.loginUser(req.body);
     res.status(200).json({

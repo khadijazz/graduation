@@ -55,6 +55,14 @@ app.all("{*path}", (req, res, next) => {
 
 app.use((error, req, res, next) => {
   console.log(error);
+  if (error.name === "ValidationError") {
+    const message = Object.values(error.errors).map(el => el.message).join(", ");
+    return res.status(400).json({
+      status: "fail",
+      message: message,
+      data: null
+    });
+  }
   if (error.isOperational) {
     res.status(error.statusCode).json({
       status: "fail",

@@ -17,8 +17,10 @@ const mongoose = require('mongoose');
     ref: "caregiver",
 
   },
-
-  location: String,
+  governorate: {
+    type: String,
+    required: [true, "Governorate is required"],
+  },
   date: Date,
   time: String,
   duration: String,

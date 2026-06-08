@@ -1,10 +1,16 @@
 const requestModel = require("../models/request.model");
 const requestService = require("../services/request.services");
+const { ApiError } = require("../Utills/ApiError");
 
 exports.createRequest = async (req, res, next) => {
+  if (!req.user.governorate) {
+    throw new ApiError("Client account does not have a governorate assigned. Please update your profile.", 400);
+  }
+
   const request = await requestService.createRequestService({
     ...req.body,
     client: req.user._id,
+    governorate: req.user.governorate, // Store authenticated client's governorate
   });
 
   res.status(201).json({
@@ -14,7 +20,6 @@ exports.createRequest = async (req, res, next) => {
   });
 };
 
-
 exports.getMyRequests = async (req, res, next) => {
     const requests = await requestService.getmyrequests(req.user._id);
     res.status(200).json({
@@ -23,10 +28,7 @@ exports.getMyRequests = async (req, res, next) => {
     });
 };
 
-
-
-
- exports.respondToRequest = async (req, res, next) => {
+exports.respondToRequest = async (req, res, next) => {
      const { requestId } = req.params;
      const { action } = req.body; 
      const request = await requestModel.findById(requestId);
@@ -53,9 +55,8 @@ exports.getMyRequests = async (req, res, next) => {
      });
  };
 
-
 exports.getrequestbyid = async (req, res, next) => {
-    const request = await request.findById(req.params.id);
+    const request = await requestService.getrequestbyid(req.params.id);
     res.status(200).json({
         message: "Request fetched successfully",
         data: request,
@@ -63,25 +64,31 @@ exports.getrequestbyid = async (req, res, next) => {
 };
 
 exports.updateRequest = async (req, res, next) => {
-    const request = await request.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const request = await requestService.updaterequest(req.params.id, req.body);
     res.status(200).json({
         message: "Request updated successfully",
         data: request,
     });
 };
 
-
 exports.deleterequest = async (req, res, next) => {
-    const request = await request.findByIdAndDelete(req.params.id);
+    const request = await requestService.deleterequest(req.params.id);
     res.status(200).json({
         message: "Request deleted successfully",
         data: request,
     });
 };
 
-exports.getAvailableRequests = async (req, res) => {
+exports.getAvailableRequests = async (req, res, next) => {
+  if (!req.user.governorate) {
+    throw new ApiError("Caregiver account does not have a governorate assigned. Please update your profile.", 400);
+  }
 
-  const requests = await requestService.getAvailableRequests();
+  if (req.user.active === false) {
+    throw new ApiError("Your account is suspended", 403);
+  }
+
+  const requests = await requestService.getAvailableRequests(req.user.governorate);
 
   res.status(200).json({
     success: true,
@@ -89,4 +96,5 @@ exports.getAvailableRequests = async (req, res) => {
     data: requests
   });
 };
+
 

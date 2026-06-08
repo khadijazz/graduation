@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const bcrypt = require('bcryptjs');
 const crypto = require("crypto");
+const { validateAndNormalizeGovernorate } = require("../Utills/governorates");
 
 const caregiverSchema = new mongoose.Schema({
 
@@ -31,6 +32,25 @@ const caregiverSchema = new mongoose.Schema({
 
     }, 
   role: { type: String ,default:"caregiver"},
+
+  governorate: {
+    type: String,
+    required: [true, "Governorate is required"],
+    validate: {
+      validator: function(v) {
+        return !!validateAndNormalizeGovernorate(v);
+      },
+      message: props => `${props.value} is not a valid governorate!`
+    },
+    set: function(v) {
+      return validateAndNormalizeGovernorate(v) || v;
+    }
+  },
+
+  active: {
+    type: Boolean,
+    default: true
+  },
 
   speciality:{type:String, enum:["elderly care","child care","pet care","medical care"]},
 

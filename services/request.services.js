@@ -12,18 +12,29 @@ const getmyrequests = (userId) =>
     .populate("client", "name phone")
     .populate("service", "serviceType");
 
-const getAvailableRequests = () =>
-  requestModel
-    .find({ status: "PENDING" })
-    .populate("client", "_id name phone")
+const getAvailableRequests = async (governorate) => {
+  const requests = await requestModel
+    .find({
+      status: "PENDING",
+      governorate: governorate,
+      date: { $gte: new Date() }
+    })
+    .populate({
+      path: "client",
+      select: "_id full_name email active name phone",
+      match: { active: { $ne: false } }
+    })
     .populate("service", "serviceType")
     .sort({ createdAt: -1 });
+
+  return requests.filter(req => req.client !== null);
+};
 
 const getrequestbyid = async (id) => {
   const request = await requestModel
     .findById(id)
-    .populate("client", "name phone")
-    .populate("service", "serviceType");
+    .populate("client", " full_name phone")
+    .populate("service", "serviceName");
 
   if (!request) {
     throw new ApiError("Request not found", 404);

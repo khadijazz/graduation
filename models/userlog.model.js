@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const { validateAndNormalizeGovernorate } = require("../Utills/governorates");
 
 const addressSchema = new mongoose.Schema({
-    city: String,
+  
     street: String,
     building: String
 });
@@ -35,7 +36,27 @@ const userlogSchema = new mongoose.Schema({
 
     }, 
 
+    
+      governorate: {
+      type: String,
+      required: [true, "Governorate is required"],
+      validate: {
+        validator: function(v) {
+          return !!validateAndNormalizeGovernorate(v);
+        },
+        message: props => `${props.value} is not a valid governorate!`
+      },
+      set: function(v) {
+        return validateAndNormalizeGovernorate(v) || v;
+      }
+    },
     address : addressSchema,
+
+
+    active: {
+      type: Boolean,
+      default: true
+    },
     
     role: {
       type: String,
