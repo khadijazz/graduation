@@ -22,14 +22,7 @@ const createUserLog = async (data) => {
     throw new ApiError("Email already exists", 400);
   }
 
-  const user = await Userlog.create(data);
-
-  await Wallet.create({
-    user: user._id,
-    balance: 0,
-    totalDeposited: 0,
-    totalSpent: 0
-  });
+  const user = await Userlog.create(data)
 
   return user;
 };

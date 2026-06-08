@@ -9,6 +9,7 @@ const walletSchema = new mongoose.Schema({
     balance: {
         type: Number,
         default: 0,
+        
     },
      totalDeposited: {
     type: Number,
