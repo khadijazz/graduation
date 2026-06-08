@@ -9,8 +9,8 @@ const createRequestService = (data) =>
 const getmyrequests = (userId) =>
   requestModel
     .find({ client: userId })
-    .populate("client", "name phone")
-    .populate("service", "serviceType");
+    .populate("client", "full_name phone")
+    .populate("service", "serviceName");
 
 const getAvailableRequests = async (governorate) => {
   const requests = await requestModel
