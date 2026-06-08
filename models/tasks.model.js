@@ -6,6 +6,11 @@ taskID:{
     required:true,
     unique:true,
 },
+request:{
+    type:mongoose.Schema.Types.ObjectId,
+    ref:"Request",
+},
+
 taskTitle:{
     type:String,
     required:true,

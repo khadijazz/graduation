@@ -32,11 +32,17 @@ const mongoose = require('mongoose');
       "PENDING",
       "BOOKED",
       "COMPLETED",
-      "CANCELLED"
+      "CANCELLED",
+      "ACCEPTED",
+      "REJECTED",
     ],
     default: "PENDING",
+    
   },
-
+budget: {
+  type: Number,
+  required: [true, "Budget is required"],
+},
 }, { timestamps: true });
 
 const Request = mongoose.model("Request", requestSchema);
