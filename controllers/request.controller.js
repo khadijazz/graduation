@@ -21,13 +21,31 @@ exports.createRequest = async (req, res, next) => {
 };
 
 exports.getMyRequests = async (req, res, next) => {
-    const requests = await requestService.getmyrequests(req.user._id);
-    res.status(200).json({
-        message: "Requests fetched successfully",
-        data: requests,
-    });
-};
 
+  try {
+
+    const requests =
+      await requestService.getmyrequests(
+        req.user._id
+      );
+
+    res.status(200).json({
+      message: "Requests fetched successfully",
+      data: requests,
+    });
+
+  } catch(err) {
+
+    console.log("ERROR =", err);
+
+    res.status(500).json({
+      status:"error",
+      message: err.message
+    });
+
+  }
+
+};
 exports.respondToRequest = async (req, res, next) => {
      const { requestId } = req.params;
      const { action } = req.body; 
