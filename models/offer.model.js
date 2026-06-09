@@ -17,6 +17,7 @@ const offerSchema = new mongoose.Schema({
  },
  status:{
     type:String,
+    default:"pending",
     enum:["pending","accepted","rejected"],
 
  },
@@ -29,5 +30,5 @@ const offerSchema = new mongoose.Schema({
 
 
 
-const offerModel = mongoose.model("offer", offerSchema);
+const offerModel = mongoose.model("Offer", offerSchema);
 module.exports = offerModel;

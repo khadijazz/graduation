@@ -20,11 +20,11 @@ const sendMessage = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
   if (!message || message.trim() === "") {
-    throw new ApiError(400, "الرسالة لا يمكن أن تكون فارغة");
+    throw new ApiError("الرسالة لا يمكن أن تكون فارغة", 400);
   }
 
   if (message.trim().length > 1000) {
-    throw new ApiError(400, "الرسالة طويلة جداً، الحد الأقصى 1000 حرف");
+    throw new ApiError("الرسالة طويلة جداً، الحد الأقصى 1000 حرف", 400);
   }
 
   const result = await chatService.sendMessage(

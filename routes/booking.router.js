@@ -9,8 +9,6 @@ router.use(verifyUser);
 router.route("/")
 .get(permittedTo(["client","caregiver"]),bookingController.getAllBookings);
 
-router.route("/bookingfromoffer")
-.post(permittedTo(["client"]),bookingController.createBookingFromOffer);
 
 router.route("/confirmbookingandpay/:id")
 .patch(permittedTo(["client"]),bookingController.confirmBookingAndPay);

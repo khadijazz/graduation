@@ -37,7 +37,7 @@ const ChatSessionSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Userlog",
       required: true,
       index: true,
     },

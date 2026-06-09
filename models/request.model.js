@@ -14,7 +14,7 @@ const mongoose = require('mongoose');
   },
    caregiver: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "caregiver",
+    ref: "Caregiver",
 
   },
   governorate: {

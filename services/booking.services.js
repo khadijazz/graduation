@@ -7,46 +7,7 @@ const { ApiFeature } = require("../Utills/ApiFeature");
 const { ApiError } = require("../Utills/ApiError");
 const mongoose = require("mongoose");
 
-  const createBookingFromOffer = async (offerId, userId) => {
-
-  const offer = await Offer.findById(offerId)
-    .populate("request");
-
-  if (!offer) {
-    throw new Error("Offer not found");
-  }
-
-
-  if (offer.request.client.toString() !== userId.toString()) {
-    throw new Error("Unauthorized");
-  }
-
-  // create booking
-  const newBooking = await Booking.create({
-
-    request: offer.request._id,
-
-    offer: offer._id,
-
-    client: offer.request.client,
-
-    caregiver: offer.caregiver,
-
-    price: offer.price,
-
-    bookingStatus: "PENDING",
-  });
-
-  // update offer
-  offer.status = "ACCEPTED";
-  await offer.save();
-
-  // update request
-  offer.request.status = "BOOKED";
-  await offer.request.save();
-
-  return newBooking;
-};
+  
 
 const getallbooking = (queryParams) =>{
     const apiFeature=new ApiFeature(Booking.find({}),queryParams);
@@ -193,7 +154,6 @@ const processPaymentAndConfirmBooking = async (offerId, userId) => {
 };
 
 module.exports = {
-  createBookingFromOffer,
   getallbooking,
   getbookingbyid,
   updatebooking,

@@ -19,4 +19,4 @@ const servicesSchema=new mongoose.Schema({
         required: true},
 },{strict:true})
 
-module.exports=mongoose.model("services",servicesSchema);
+module.exports=mongoose.model("Service",servicesSchema);

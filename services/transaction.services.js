@@ -10,10 +10,13 @@ const getalltransaction = (queryParams) =>{
     apiFeature.projection();
     return apiFeature.dbQuery;
 };
-const gettransactionbyid = (id) => transaction.findById(id);
-if(!gettransactionbyid){
-    throw new ApiError("transaction not found",404);
-}
+const gettransactionbyid = async (id) => {
+    const txn = await transaction.findById(id);
+    if (!txn) {
+        throw new ApiError("transaction not found", 404);
+    }
+    return txn;
+};
 const updatetransaction = (id, updates) => transaction.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
 const deletetransaction = (id) => transaction.findByIdAndDelete(id);
 const deleteAllTransactions = () => transaction.deleteMany({});

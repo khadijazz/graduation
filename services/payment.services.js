@@ -129,6 +129,10 @@ exports.handlePaymobCallback = async (body, query) => {
   const paymobTransactionId = obj.id;
   const success = obj.success === true || obj.success === "true";
 
+  if (!merchantOrderId || !/^[0-9a-fA-F]{24}$/.test(merchantOrderId)) {
+    throw new Error("Invalid transaction ID format");
+  }
+
   const transaction = await Transaction.findById(merchantOrderId);
   if (!transaction) throw new Error("Transaction not found");
 

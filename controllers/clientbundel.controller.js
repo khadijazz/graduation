@@ -1,4 +1,4 @@
-const clientBundleService = require("../services/clientbundel.services");
+//const clientBundleService = require("../services/clientbundel.services");
 const { ApiError } = require("../Utills/ApiError");
 const clientBundleModel = require("../models/clientbundel.model");  
 const bundleModel = require("../models/bundel.model");
@@ -116,4 +116,25 @@ exports.cancelBundle = async (req, res, next) => {
     });
   };
 
-  //3aw
+  exports.getallbundle = async (req, res, next) => {
+      const query = req.user.role === "admin" ? {} : { client: req.user._id };
+      const clientBundles = await clientBundleModel.find(query).populate("bundle");
+      res.status(200).json({
+        status: "success",
+        data: clientBundles,
+      });
+  };
+
+  exports.getBundleById = async (req, res, next) => {
+      const clientBundle = await clientBundleModel.findById(req.params.id).populate("bundle");
+      if (!clientBundle) {
+        return res.status(404).json({ message: "Client bundle not found" });
+      }
+      if (req.user.role !== "admin" && clientBundle.client.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      res.status(200).json({
+        status: "success",
+        data: clientBundle,
+      });
+  };

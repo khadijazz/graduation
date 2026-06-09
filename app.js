@@ -15,6 +15,9 @@ const offerRouter = require('./routes/offer.route');
 const requestRouter = require('./routes/request.routes');
 const chatRouter = require('./routes/chat.routes');
 const walletRouter = require('./routes/wallet.routes');
+const reviewRouter = require("./routes/review.routes");
+const clientbundelRouter = require("./routes/clientbundel.route");
+const bundelRouter = require("./routes/bundel.routes");
 const { ApiError } = require("./Utills/ApiError");
 
 app.get('/', (req, res) => {
@@ -44,8 +47,11 @@ app.use('/offer', offerRouter);
 app.use('/request', requestRouter);
 app.use('/chat', chatRouter);
 app.use('/wallet', walletRouter);
+app.use("/review", reviewRouter);
+app.use("/clientbundel", clientbundelRouter);
+app.use("/bundle", bundelRouter);
 
-app.all("{*path}", (req, res, next) => {
+app.use((req, res, next) => {
   res.status(404).json({
     status: "error",
     message: "Not found",

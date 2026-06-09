@@ -1,18 +1,18 @@
 const express=require("express");
 const router=express.Router();
-const bundleController=require("../controllers/bundle.controller");
-const {pmtied}=require("../Utills/premtied");
-const verfiyusers = require("../Utills/verfiyusers");
-router.use(verfiyusers);
+const bundleController=require("../controllers/bundel.controller");
+const {permittedTo}=require("../Utills/premittedTo");
+const verifyUser = require("../Utills/verifyUser");
+router.use(verifyUser);
 
 
 router.route("/")
-.post(pmtied(["admin"]),bundleController.createBundle)
+.post(permittedTo(["admin"]),bundleController.createBundle)
 .get(bundleController.getallbundle);
 
 router.route("/:id")
 .get(bundleController.getbundlebyid)
-.patch(pmtied(["admin"]),bundleController.updatebundle)
-.delete(pmtied(["admin"]),bundleController.deletebundle);
+.patch(permittedTo(["admin"]),bundleController.updatebundle)
+.delete(permittedTo(["admin"]),bundleController.deletebundle);
 
 module.exports=router;

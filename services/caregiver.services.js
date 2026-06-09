@@ -30,13 +30,13 @@ const createcaregiver = async (data) => {
 };
 
 const getallcaregiver = (queryParams) =>{
-    const apiFeature=new ApiFeature(caregiver.find({}).populate("userId", "full_name email"),queryParams);
+    const apiFeature=new ApiFeature(caregiver.find({}),queryParams);
     apiFeature.paginate();
     apiFeature.sort();
     apiFeature.projection();
     return apiFeature.dbQuery;
 };
-const getcaregiverbyid=(id)=>caregiver.findById(id).populate("userId", "full_name email");
+const getcaregiverbyid=(id)=>caregiver.findById(id);
 const updatecaregiver=(id,updates)=>caregiver.findByIdAndUpdate(id,updates,{new:true,runValidators:true});
 const deletecaregiver=(id)=>caregiver.findByIdAndDelete(id);
 const deleteAllCaregivers = () => caregiver.deleteMany();

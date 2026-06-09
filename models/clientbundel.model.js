@@ -4,7 +4,7 @@ const mongoose=require("mongoose");
 const clientBundleSchema = new mongoose.Schema({
   client: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+    ref: "Userlog",
     required: true,
   },
 
