@@ -3,8 +3,11 @@ const userlogServices=require("../services/userlog.services");
 const { uploadToCloudinary } = require("../Utills/uploadCloudinary");
 
 
-
 exports.createuserlog = async (req,res,next)=>{
+try{
+
+  console.log("BODY =", req.body);
+  console.log("FILES =", req.files);
 
   const userData = { ...req.body };
 
@@ -20,13 +23,19 @@ exports.createuserlog = async (req,res,next)=>{
     );
   }
 
-
   const userlog = await userlogServices.createUserLog(userData);
 
   res.status(201).json({
     status: "success",
     data: userlog
   });
+
+}catch(error){
+  console.error("SIGNUP ERROR =", error);
+  res.status(500).json({
+    message:error.message
+  });
+}
 };
 exports.loginUser=async(req,res,next)=>{
     const token = await userlogServices.loginUser(req.body);
