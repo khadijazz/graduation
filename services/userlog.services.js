@@ -62,13 +62,20 @@ if(!isTheOne){
     throw new ApiError("email or password is wrong",400);
 }
 
-return jwt.sign(
+const token = jwt.sign(
   {
     id: userDoc._id,
     role: userDoc.role || userType
   },
   "this-is-my-very-long-secret-key"
 );
+
+userDoc.password = undefined;
+
+return {
+  user: userDoc,
+  token
+};
 }
 
 const getUserById=(id)=>Userlog.findById(id);
