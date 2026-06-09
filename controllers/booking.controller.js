@@ -59,3 +59,20 @@ exports.confirmBookingAndPay = async (req, res, next) => {
     data: Booking
   })
 };
+
+exports.processPaymentAndConfirmBooking = async (req, res, next) => {
+  try {
+    const offerId = req.params.offerId || req.body.offerId;
+    if (!offerId) {
+      throw new ApiError("Offer ID is required", 400);
+    }
+    const booking = await bookingService.processPaymentAndConfirmBooking(offerId, req.user._id);
+    res.status(200).json({
+      message: "Payment processed and booking accepted successfully",
+      success: true,
+      data: booking
+    });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -1,7 +1,7 @@
 const express=require("express");
 const router=express.Router();
 const bookingController=require("../controllers/booking.controller");
-const verifyUser=require("../Utills/verifyuser");
+const verifyUser=require("../Utills/verifyUser");
 const {permittedTo } = require("../Utills/premittedTo");
 
 router.use(verifyUser);
@@ -14,6 +14,12 @@ router.route("/bookingfromoffer")
 
 router.route("/confirmbookingandpay/:id")
 .patch(permittedTo(["client"]),bookingController.confirmBookingAndPay);
+
+router.route("/process-payment")
+.post(permittedTo(["client"]),bookingController.processPaymentAndConfirmBooking);
+
+router.route("/process-payment/:offerId")
+.post(permittedTo(["client"]),bookingController.processPaymentAndConfirmBooking);
 
 
 router.route("/:id")

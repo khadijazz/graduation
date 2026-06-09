@@ -192,7 +192,7 @@ exports.payBookingFromWallet = async (user, body) => {
   wallet.transactions.push(transaction._id);
   await wallet.save();
 
-  booking.BookingStatus = "confirmed";
+  booking.bookingStatus = "CONFIRMED";
   await booking.save();
 
   return {
