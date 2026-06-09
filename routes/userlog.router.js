@@ -8,13 +8,15 @@ router.use((req, res, next) => {
   console.log("URL =", req.originalUrl);
   next();
 }); 
-router.post('/signup',upload.fields([
+router.post('/signup', upload.fields([
     { name: "profile_picture", maxCount: 1 },
     { name: "national_id", maxCount: 2 },
-  ]),userlogcontroller.createuserlog);
-router.post('/login',userlogcontroller.loginUser);
-router.get('/:id',userlogcontroller.finduserlogbyid);
+]), userlogcontroller.createuserlog);
+
+router.post('/login', userlogcontroller.loginUser);
 router.post('/forgotpassword', userlogcontroller.forgotPassword);
 router.patch('/resetpassword/:token', userlogcontroller.resetPassword);
-router.patch('/updatepassword',verifyUser, userlogcontroller.updatePassword);
+router.patch('/updatepassword', verifyUser, userlogcontroller.updatePassword);
+
+router.get('/:id', userlogcontroller.finduserlogbyid);
 module.exports = router;
