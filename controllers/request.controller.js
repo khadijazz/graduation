@@ -10,7 +10,7 @@ exports.createRequest = async (req, res, next) => {
   const request = await requestService.createRequestService({
     ...req.body,
     client: req.user._id,
-    governorate: req.user.governorate, // Store authenticated client's governorate
+    governorate: req.user.governorate, 
   });
 
   res.status(201).json({

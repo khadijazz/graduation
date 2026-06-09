@@ -61,7 +61,7 @@ exports.updateReview = async (req, res, next) => {
         throw new ApiError("Review not found", 404);
     }
 
-    // Authorization check: only owner can update review
+    
     const userId = req.user._id.toString();
     if (review.client.toString() !== userId && review.caregiver.toString() !== userId) {
         throw new ApiError("Unauthorized to update this review", 403);
@@ -86,7 +86,7 @@ exports.deleteReview = async (req, res, next) => {
         throw new ApiError("Review not found", 404);
     }
 
-    // Authorization check: admin or owner can delete review
+    
     const userId = req.user._id.toString();
     const isAdmin = req.user.role === "admin";
     if (!isAdmin && review.client.toString() !== userId && review.caregiver.toString() !== userId) {

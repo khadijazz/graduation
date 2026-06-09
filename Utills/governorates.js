@@ -1,5 +1,5 @@
 const GOVERNORATES_MAP = {
-  // English lowercase keys to canonical names
+  
   cairo: "Cairo",
   giza: "Giza",
   alexandria: "Alexandria",
@@ -40,7 +40,7 @@ const GOVERNORATES_MAP = {
   sharqia: "Sharqia",
   sharkia: "Sharqia",
 
-  // Arabic keys (normalized representation)
+  
   "القاهره": "Cairo",
   "القاهرة": "Cairo",
   "الجيزه": "Giza",
@@ -86,23 +86,23 @@ const GOVERNORATES_MAP = {
 function normalizeArabic(text) {
   if (typeof text !== "string") return "";
   return text
-    .replace(/[\u064B-\u0652]/g, "") // Remove tashkeel/diacritics
-    .replace(/[أإآ]/g, "ا")         // Standardize Alef
-    .replace(/ة/g, "ه")            // Standardize Taa Marbouta
-    .replace(/ى/g, "ي")            // Standardize Alef Maksoura
+    .replace(/[\u064B-\u0652]/g, "") 
+    .replace(/[أإآ]/g, "ا")         
+    .replace(/ة/g, "ه")            
+    .replace(/ى/g, "ي")            
     .trim();
 }
 
 function validateAndNormalizeGovernorate(value) {
   if (!value || typeof value !== "string") return null;
 
-  // 1. Check exact / trimmed lowercase English match
+  
   const cleanVal = value.trim().toLowerCase();
   if (GOVERNORATES_MAP[cleanVal]) {
     return GOVERNORATES_MAP[cleanVal];
   }
 
-  // 2. Normalize spaces/separators and check again
+  
   const normalizedSpaces = cleanVal.replace(/[\s-_]+/g, " ");
   if (GOVERNORATES_MAP[normalizedSpaces]) {
     return GOVERNORATES_MAP[normalizedSpaces];
@@ -113,7 +113,7 @@ function validateAndNormalizeGovernorate(value) {
     return GOVERNORATES_MAP[noSpaces];
   }
 
-  // 3. Normalize Arabic characters and check
+  
   const cleanArabic = normalizeArabic(value);
   if (GOVERNORATES_MAP[cleanArabic]) {
     return GOVERNORATES_MAP[cleanArabic];

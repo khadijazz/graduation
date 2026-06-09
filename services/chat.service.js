@@ -24,7 +24,7 @@ const getOrCreateSession = async (userId, sessionId = null) => {
     isActive: true,
   }).sort({ lastMessageAt: -1 });
 
-  // Create a new session if none exists
+  
   if (!session) {
     session = await ChatSession.create({
       userId,
@@ -52,28 +52,28 @@ const buildConversationHistory = (messages, limit = 10) => {
   }));
 };
 
-// Main service: Send a user message and get AI response
+
 
 const sendMessage = async (userId, userMessage, sessionId = null) => {
-  // Get or create session
+  
   const session = await getOrCreateSession(userId, sessionId);
 
-  // Pass the fixed specialties list to AI
+  
   const specialties = CAREGIVER_SPECIALTIES;
 
-  // Build conversation history for AI context
+  
   const conversationHistory = buildConversationHistory(session.messages);
   conversationHistory.push({ role: "user", content: userMessage });
 
-  // Call OpenRouter AI
+  
   const aiResponse = await callOpenRouter(conversationHistory, specialties);
 
-  //  Validate recommended specialty against allowed list (safety: no fake specialties)
+  
   aiResponse.recommendedSpecialty = validateSpecialty(
     aiResponse.recommendedSpecialty
   );
 
-  // Save user message to session
+  
   session.messages.push({
     role: "user",
     content: userMessage,
@@ -81,7 +81,7 @@ const sendMessage = async (userId, userMessage, sessionId = null) => {
     structuredResponse: {},
   });
 
-  //  Save bot response to session
+  
   session.messages.push({
     role: "assistant",
     content: aiResponse.botMessage,
@@ -95,7 +95,7 @@ const sendMessage = async (userId, userMessage, sessionId = null) => {
     },
   });
 
-  // 8. Update session title from first user message
+  
   if (session.messages.length <= 2) {
     session.sessionTitle =
       userMessage.length > 40
@@ -111,9 +111,7 @@ const sendMessage = async (userId, userMessage, sessionId = null) => {
   };
 };
 
-/**
- * Get full chat history for a user session
- */
+
 const getChatHistory = async (userId, sessionId = null) => {
   let query = { userId, isActive: true };
   if (sessionId) query._id = sessionId;
@@ -143,9 +141,7 @@ const getChatHistory = async (userId, sessionId = null) => {
   };
 };
 
-/**
- * Get all chat sessions for a user
- */
+
 const getUserSessions = async (userId) => {
   const sessions = await ChatSession.find({ userId, isActive: true })
     .select("sessionTitle lastMessageAt createdAt messages")
@@ -160,9 +156,7 @@ const getUserSessions = async (userId) => {
   }));
 };
 
-/**
- * Start a brand new chat session for a user
- */
+
 const startNewSession = async (userId) => {
   const session = await ChatSession.create({
     userId,

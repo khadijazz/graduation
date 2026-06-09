@@ -25,17 +25,17 @@ app.get('/', (req, res) => {
   res.send('Hello, World!');
 });
 
-//logger
+
 app.use(morgan("dev"));
 
-//middleware to parse json body
+
 app.use(express.json({ limit: "10mb" }));
-//middlware to parse url encoded body
+
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 
 
-//middleware of routers
+
 app.use("/userlog", userlogRouter);
 app.use("/caregiver", caregiverRouter);
 app.use("/services", servicesRouter);

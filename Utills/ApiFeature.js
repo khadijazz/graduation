@@ -4,7 +4,7 @@ constructor(dbQuery,requestQuery){
     this.requestQuery=requestQuery;
 }
 paginate(pageNumber=1, pageSize=5){
-                                          //btrga3 awl truthy value                      
+                                          
 pageNumber=Number(this.requestQuery.pageNumber)|| pageNumber;
 pageSize=Number(this.requestQuery.pageSize)|| pageSize;
 let skip=0;

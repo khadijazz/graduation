@@ -34,8 +34,8 @@ exports.finduserlogbyid=async(req,res,next)=>{
 exports.forgotPassword = async (req, res, next) => {
   await userlogServices.forgotPassword(
     req.body,
-    req.protocol,      // "http" or "https" — used to build the reset URL
-    req.get("host")    // e.g. "localhost:4000"
+    req.protocol,      
+    req.get("host")    
   );
  
   res.status(200).json({
@@ -47,15 +47,15 @@ exports.forgotPassword = async (req, res, next) => {
 
 exports.resetPassword = async (req, res, next) => {
   const token = await userlogServices.resetPassword(
-    req.params.token,              // plain token from the URL
-    req.body.password,             // new password
-    req.body.passwordConfirmation  // must match password
+    req.params.token,              
+    req.body.password,             
+    req.body.passwordConfirmation  
   );
  
   res.status(200).json({
     status: "success",
     message: "Password reset successfully. You are now logged in.",
-    data: token,   // JWT — same shape as loginUser response
+    data: token,   
   });
 };
 exports.updatePassword = async (req, res, next) => {

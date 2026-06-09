@@ -4,7 +4,7 @@ const { connectDB } = require('./config/database');
 
 const PORT=process.env.PORT || 4000;
 
-// connected to mongodb
+
 connectDB().then(() => {
     console.log('Connected to MongoDB');
     app.listen(PORT, () => {

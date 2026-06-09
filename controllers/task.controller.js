@@ -1,13 +1,19 @@
 const taskServices=require("../services/task.services");
 
-exports.createTask=async (req,res,next)=>{
-const Data=req.body;
-const Task=await taskServices.createTask(Data);
-res.status(201).json({
-    message:"task created successfully",
-    status:"success",
-    data:Task
-})
+exports.createTasks = async (req, res, next) => {
+
+    const tasksData = req.body.map(task => ({
+        ...task,
+        request: req.params.id
+    }));
+
+    const createdTasks = await taskServices.createTasks(tasksData);
+
+    res.status(201).json({
+        message: "tasks created successfully",
+        status: "success",
+        data: createdTasks
+    });
 };
 
 exports.getAllTasks=async (req,res,next)=>{

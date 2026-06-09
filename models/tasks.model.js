@@ -1,20 +1,12 @@
 const mongoose=require("mongoose");
 
 const tasksSchema=mongoose.Schema({
-taskID:{
-    type:String,
-    required:true,
-    unique:true,
-},
 request:{
     type:mongoose.Schema.Types.ObjectId,
     ref:"Request",
 },
 
-taskTitle:{
-    type:String,
-    required:true,
-},
+
 taskDescription:{
     type:String,
     required:true,
@@ -22,21 +14,18 @@ taskDescription:{
 },
 taskState:{
     type:String,
-    required:true,
     trim:true,
     enum:["pending","in-progress","completed"],
     default:"pending",
 },
 proofType:{
     type:String,
-    required:true,
     trim:true,
     enum:["image","video",""],
     default:"image",
 },
 proofUrl:{
     type:String,
-    required:true,
     trim:true,
 },
 

@@ -87,22 +87,22 @@ result.password=undefined;
 
 userlogSchema.methods.createPasswordResetToken = function () {
 
-  // 1) Plain token → goes inside the email link (never stored in DB)
+  
   const resetToken = crypto.randomBytes(10).toString("hex");
  
-  // 2) Hashed token → stored in DB (useless to a hacker without the plain one)
+  
   this.passwordResetToken = crypto
     .createHash("sha256")
     .update(resetToken)
     .digest("hex");
  
-  // 3) Token expires in 10 minutes
+  
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
  
-  // 4) Reset attempt counter for this fresh token
+  
   this.passwordResetAttempts = 0;
  
-  // 5) Return the PLAIN token (the one that goes in the email URL)
+  
   return resetToken;
 };
 

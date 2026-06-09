@@ -11,10 +11,7 @@ const ApiResponse = (statusCode, data, message) => ({
   data,
 });
 
-/**
- * POST /api/chat/message
- * Send a user message and receive AI response
- */
+
 const sendMessage = asyncHandler(async (req, res) => {
   const { message, sessionId } = req.body;
   const userId = req.user._id;
@@ -38,10 +35,7 @@ const sendMessage = asyncHandler(async (req, res) => {
   );
 });
 
-/**
- * GET /api/chat/history
- * Retrieve chat history for the current user
- */
+
 const getChatHistory = asyncHandler(async (req, res) => {
   const { sessionId } = req.query;
   const userId = req.user._id;
@@ -53,10 +47,7 @@ const getChatHistory = asyncHandler(async (req, res) => {
   );
 });
 
-/**
- * GET /api/chat/sessions
- * Get all chat sessions for the current user
- */
+
 const getUserSessions = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 
@@ -67,10 +58,7 @@ const getUserSessions = asyncHandler(async (req, res) => {
   );
 });
 
-/**
- * POST /api/chat/sessions/new
- * Start a brand new chat session
- */
+
 const startNewSession = asyncHandler(async (req, res) => {
   const userId = req.user._id;
 

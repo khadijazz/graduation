@@ -3,7 +3,7 @@ const axios = require("axios");
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 const MODEL = process.env.OPENROUTER_MODEL || "openai/gpt-4o";
 
-//Build the system prompt with the fixed specialties and safety rules
+
  
 const buildSystemPrompt = (specialties) => {
   const specialtyList = specialties
@@ -51,7 +51,7 @@ ${specialtyList}
 `.trim();
 };
 
-// Call OpenRouter API with conversation history
+
 
 const callOpenRouter = async (messages, specialties) => {
   const systemPrompt = buildSystemPrompt(specialties);
@@ -79,12 +79,12 @@ const callOpenRouter = async (messages, specialties) => {
 
   const rawContent = response.data.choices[0].message.content;
 
-  // Parse JSON response from AI
+  
   let parsed;
   try {
     parsed = JSON.parse(rawContent);
   } catch {
-    // Fallback if AI doesn't return valid JSON
+    
     parsed = {
       botMessage: rawContent || "عذراً، حدث خطأ في المعالجة. حاول مرة أخرى.",
       suggestedRequestDescription: null,
@@ -94,7 +94,7 @@ const callOpenRouter = async (messages, specialties) => {
     };
   }
 
-  // Validate & sanitize the response
+  
   return {
     botMessage: parsed.botMessage || "عذراً، لم أفهم طلبك. ممكن تعيد الصياغة؟",
     suggestedRequestDescription: parsed.suggestedRequestDescription || null,

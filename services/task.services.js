@@ -1,6 +1,6 @@
 const tasks=require("../models/tasks.model");
 const { ApiFeature } = require("../Utills/ApiFeature");
-const createTasks = (data) => tasks.create(data);
+const createTasks = (data) => tasks.insertMany(data);
 const getalltasks = (queryParams) =>{
     const apiFeature=new ApiFeature(tasks.find({}),queryParams);
     apiFeature.paginate();

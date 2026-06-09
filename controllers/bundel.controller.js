@@ -44,7 +44,7 @@ exports.deletebundle = async (req, res, next) => {
 };
 
 
-///client choose bundlereeeee
+
 
 exports.chooseBundle = async (req, res, next) => {
   
@@ -68,4 +68,4 @@ exports.chooseBundle = async (req, res, next) => {
     });
   
 };
-//3Awww
+
