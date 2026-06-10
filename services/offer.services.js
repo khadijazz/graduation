@@ -1,6 +1,7 @@
 const offerModel = require("../models/offer.model");
 const requestModel = require("../models/request.model");
 const { ApiFeature } = require("../Utills/ApiFeature");
+const { ApiError } = require("../Utills/ApiError");
 
 const createOfferService = async (user,data) => {
   const { requestId, price, notes } = data;
@@ -46,7 +47,10 @@ const getOffers = async (requestId, userId) => {
 
   return await offerModel
     .find({ request: requestId })
-    .populate("caregiver", "name rating experience")
+    .populate(
+      "caregiver",
+      "full_name profile_picture speciality experience governorate price"
+    )
     .sort({ createdAt: -1 });
 };
 
