@@ -6,13 +6,9 @@ const verifyUser = require("../Utills/verifyUser");
 router.use(verifyUser);
 
 
-router.route("/")
-.post(permittedTo(["admin"]),bundleController.createBundle)
-.get(bundleController.getallbundle);
-
-router.route("/:id")
-.get(bundleController.getbundlebyid)
-.patch(permittedTo(["admin"]),bundleController.updatebundle)
-.delete(permittedTo(["admin"]),bundleController.deletebundle);
+router.post("/create_bundle",permittedTo(["admin"]),bundleController.createBundle);
+router.get("/get-all-bundle",permittedTo(["client","admin"]), bundleController.getAllBundle)
+router.patch("/update_bundle/:id",permittedTo(["admin"]),bundleController.updateBundle)
+router.delete("/delete_bundle/:id",permittedTo(["admin"]),bundleController.deletebundle);
 
 module.exports=router;

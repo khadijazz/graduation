@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const Userlog = require("../models/userlog.model");
 const CaregiverModel = require("../models/caregiver.model");
+const adminModel = require("../models/admin.model");
 const { ApiError } = require("../Utills/ApiError");
 
 module.exports = async (req, res, next) => {
