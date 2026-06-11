@@ -35,7 +35,9 @@ async function createPaymentKey(
   user,
   integrationId
 ) {
+  console.log("USER EMAIL =", user.email);
   const response = await axios.post(
+
     `${PAYMOB_API_URL}/acceptance/payment_keys`,
     {
       auth_token: authToken,
