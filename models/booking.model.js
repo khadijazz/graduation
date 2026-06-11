@@ -1,4 +1,4 @@
-const mongoose=require("mongoose");
+const mongoose = require("mongoose");
 
 
 const bookingSchema = new mongoose.Schema({
@@ -38,20 +38,10 @@ const bookingSchema = new mongoose.Schema({
       "PENDING",
       "ACCEPTED",
       "CONFIRMED",
-      "IN_PROGRESS",
       "COMPLETED",
       "CANCELLED"
     ],
     default: "PENDING",
-  },
-
-  checkInTime: {
-    type: Date,
-  },
-
-  checkInLocation: {
-    latitude: { type: Number },
-    longitude: { type: Number }
   },
 
 
