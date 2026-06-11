@@ -130,9 +130,11 @@ exports.handlePaymobCallback = async (body, query) => {
     body?.obj ||
     (body && Object.keys(body).length ? body : query);
 
+  console.log("OBJ:", JSON.stringify(obj, null, 2));
+
   const merchantOrderId =
-    obj?.order?.merchant_order_id ||
     obj?.merchant_order_id ||
+    obj?.order?.merchant_order_id ||
     obj?.order_id;
 
   const paymobTransactionId = obj?.id;
@@ -142,6 +144,7 @@ exports.handlePaymobCallback = async (body, query) => {
     obj?.success === "true";
 
   console.log("merchantOrderId =", merchantOrderId);
+  console.log("paymobTransactionId =", paymobTransactionId);
   console.log("success =", success);
 
   if (!merchantOrderId) {
@@ -152,12 +155,17 @@ exports.handlePaymobCallback = async (body, query) => {
     merchantOrderId
   );
 
+  console.log("transaction =", transaction);
+
   if (!transaction) {
     throw new Error("Transaction not found");
   }
 
   if (transaction.status === "COMPLETED") {
-    return { message: "Already processed" };
+    console.log("Transaction already completed");
+    return {
+      message: "Already processed",
+    };
   }
 
   transaction.paymobTransactionId = paymobTransactionId;
@@ -165,6 +173,8 @@ exports.handlePaymobCallback = async (body, query) => {
   if (!success) {
     transaction.status = "FAILED";
     await transaction.save();
+
+    console.log("Transaction marked as FAILED");
 
     return {
       message: "Payment failed recorded",
@@ -174,19 +184,30 @@ exports.handlePaymobCallback = async (body, query) => {
   transaction.status = "COMPLETED";
   await transaction.save();
 
+  console.log("Transaction marked as COMPLETED");
+  console.log("transaction.wallet =", transaction.wallet);
+
   const wallet = await Wallet.findById(
     transaction.wallet
   );
+
+  console.log("wallet =", wallet);
 
   if (!wallet) {
     throw new Error("Wallet not found");
   }
 
+  console.log("wallet balance before =", wallet.balance);
+
   wallet.balance += transaction.amount;
   wallet.totalDeposited += transaction.amount;
   wallet.transactions.push(transaction._id);
 
+  console.log("wallet balance after =", wallet.balance);
+
   await wallet.save();
+
+  console.log("Wallet updated successfully");
 
   return {
     message: "Wallet top-up completed successfully",
