@@ -30,15 +30,10 @@ const transactionSchema = new mongoose.Schema({
     min: 1,
   },
 
-  type: {
-    type: String,
-    enum: ["DEPOSIT", "BOOKING_PAYMENT", "REFUND"],
-    required: true,
-  },
-
   paymentMethod: {
     type: String,
-    enum: ["CARD", "MOBILE_WALLET", "INTERNAL_WALLET"],
+    enum: "CARD",
+    default: "CARD",
     required: true,
   },
 

@@ -33,6 +33,8 @@ const caregiverSchema = new mongoose.Schema({
     }, 
   role: { type: String ,default:"caregiver"},
 
+phoneNumber:{ type: String, unique: true }, 
+
   governorate: {
     type: String,
     required: [true, "Governorate is required"],

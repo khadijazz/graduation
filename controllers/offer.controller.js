@@ -41,6 +41,7 @@ exports.getOffers = async (req, res, next) => {
   const offers=await offerService.getOffers(requestId,userId);
   res.status(200).json({
     status:"success",
+    offerCount: offers.length,
     message:"Offers fetched successfully",
     data:offers,
   })
