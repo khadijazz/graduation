@@ -1,5 +1,6 @@
 const Userlog = require("../models/userlog.model");
 const CaregiverModel=require("../models/caregiver.model");
+const adminModel=require("../models/admin.model");
 const Request = require("../models/request.model");
 const Offer = require("../models/offer.model");
 const Booking = require("../models/booking.model");
@@ -51,6 +52,10 @@ let userDoc=await Userlog.findOne({email:data.email}).select("+password");
   if (!userDoc) {
     userDoc = await CaregiverModel.findOne({ email: data.email }).select("+password");
     userType = "caregiver";
+  }
+  if (!userDoc) {
+    userDoc = await adminModel.findOne({ email: data.email }).select("+password");
+    userType = "admin";
   }
 if(!userDoc){
     throw new ApiError("no user found with this email",400);
