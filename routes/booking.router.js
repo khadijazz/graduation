@@ -20,6 +20,13 @@ router.route("/process-payment/:offerId")
 .post(permittedTo(["client"]),bookingController.processPaymentAndConfirmBooking);
 
 
+router.route("/:id/check-in")
+.patch(permittedTo(["caregiver"]), bookingController.checkIn);
+
+router.route("/:id/location")
+.patch(permittedTo(["caregiver"]), bookingController.updateLocation)
+.get(permittedTo(["client"]), bookingController.getLocation);
+
 router.route("/:id")
 .get(permittedTo(["client","caregiver"]),bookingController.getBookingById)
 .patch(permittedTo(["client"]),bookingController.updateBooking)

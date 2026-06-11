@@ -29,6 +29,18 @@ proofUrl:{
     trim:true,
 },
 
+proofs: [
+    {
+        url: { type: String, required: true },
+        mediaType: { type: String, enum: ["image", "video"], required: true },
+        uploadedAt: { type: Date, default: Date.now }
+    }
+],
+
+completedAt: {
+    type: Date
+},
+
 taskType:{
     type:String,
     trim:true,
