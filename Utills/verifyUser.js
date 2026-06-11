@@ -19,6 +19,9 @@ module.exports = async (req, res, next) => {
   if (!user) {
     user = await CaregiverModel.findById(payload.id);
   }
+    if (!user) {
+    user = await adminModel.findById(payload.id);
+  }
 
   if (!user) {
     throw new ApiError("user no longer exists", 401);

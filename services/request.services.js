@@ -18,15 +18,14 @@ const getAvailableRequests = async (governorate) => {
   const requests = await requestModel
     .find({
       status: "PENDING",
-      governorate: governorate,
-      date: { $gte: new Date() }
+      governorate: governorate
     })
     .populate({
       path: "client",
-      select: "_id full_name email active name phone",
+      select: "_id full_name email phone governorate budget duration notes date time",
       match: { active: { $ne: false } }
     })
-    .populate("service", "serviceType")
+    .populate("service", "serviceName")
     .sort({ createdAt: -1 });
 
   return requests.filter(req => req.client !== null);

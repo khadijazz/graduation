@@ -7,7 +7,7 @@ const Request = require("../models/request.model");
 
 
 
-const createAdmin = async (data) => {
+const createadmin = async (data) => {
   const { name, email, password, passwordConfirmation,level ,role ,address} = data;
 
   const admin = await Admin.create({
@@ -23,15 +23,12 @@ const createAdmin = async (data) => {
   return admin;
 };
 
-const getAdmin = async (id) => {
-  return Admin.findById(id);
-};
 
-const updateAdmin = async (id, data) => {
+const updateadmin = async (id, data) => {
   return Admin.findByIdAndUpdate(id, data, { new: true, runValidators: true });
 };
 
-const deleteAdmin = async (id) => {
+const deleteadmin = async (id) => {
   return Admin.findByIdAndDelete(id);
 };
 
@@ -89,10 +86,9 @@ const getComplaintsService =
 
 
 module.exports = {
-  createAdmin,
-  getAdmin,
-  updateAdmin,
-  deleteAdmin,
+  createadmin,
+  updateadmin,
+  deleteadmin,
   deleteAllAdmins,
   getPendingCaregiversService,
   verifyCaregiver,
