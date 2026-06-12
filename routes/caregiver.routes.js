@@ -21,6 +21,7 @@ router.post('/signup',upload.fields([
     { name: "verifcation_documents", maxCount: 5 }
   ]),controller.newCaregiver)
 
+router.post('/check-status', controller.checkStatus);
 
 module.exports=router;
 

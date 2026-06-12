@@ -66,6 +66,23 @@ const userlogSchema = new mongoose.Schema({
 
  profile_picture: String,
 national_id: String,
+   isBlocked: {
+     type: Boolean,
+     default: false
+   },
+   blockReason: {
+     type: String,
+     default: null
+   },
+   blockDate: {
+     type: Date,
+     default: null
+   },
+   blockedBy: {
+     type: mongoose.Schema.Types.ObjectId,
+     ref: "admin",
+     default: null
+   },
 
    passwordResetToken: {type: String,default: null},
    passwordResetExpires: {type: Date,default: null},          

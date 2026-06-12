@@ -40,4 +40,21 @@ const getcaregiverbyid=(id)=>caregiver.findById(id);
 const updatecaregiver=(id,updates)=>caregiver.findByIdAndUpdate(id,updates,{new:true,runValidators:true});
 const deletecaregiver=(id)=>caregiver.findByIdAndDelete(id);
 const deleteAllCaregivers = () => caregiver.deleteMany();
-module.exports={createcaregiver,getallcaregiver,getcaregiverbyid,updatecaregiver,deletecaregiver,deleteAllCaregivers}
+
+const bcrypt = require("bcryptjs");
+const checkCaregiverStatus = async (email, password) => {
+  const caregiverDoc = await caregiver.findOne({ email }).select("+password");
+  if (!caregiverDoc) {
+    throw new ApiError("no caregiver found with this email", 400);
+  }
+  const isCorrect = await bcrypt.compare(password, caregiverDoc.password);
+  if (!isCorrect) {
+    throw new ApiError("email or password is wrong", 400);
+  }
+  if (caregiverDoc.isBlocked) {
+    throw new ApiError("Your account has been blocked. Please contact support.", 403);
+  }
+  return caregiverDoc.status;
+};
+
+module.exports={createcaregiver,getallcaregiver,getcaregiverbyid,updatecaregiver,deletecaregiver,deleteAllCaregivers,checkCaregiverStatus}

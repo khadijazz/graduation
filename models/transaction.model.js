@@ -46,6 +46,32 @@ const transactionSchema = new mongoose.Schema({
   paymobOrderId: String,
   paymobTransactionId: String,
 
+  type: {
+    type: String,
+  },
+
+  description: {
+    type: String,
+  },
+
+  bundleUsed: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "ClientBundle",
+  },
+
+  discountAmount: {
+    type: Number,
+    default: 0,
+  },
+
+  finalChargedAmount: {
+    type: Number,
+  },
+
+  originalAmount: {
+    type: Number,
+  },
+
 }, { timestamps: true });
 
 transactionSchema.pre(['find', 'findOne', 'findOneAndUpdate', 'countDocuments', 'updateOne', 'deleteMany', 'deleteOne'], function() {

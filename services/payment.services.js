@@ -254,8 +254,12 @@ exports.payBookingFromWallet = async (user, body) => {
     wallet: wallet._id,
     booking: booking._id,
     amount,
+    originalAmount: booking.originalPrice || booking.price || amount,
+    discountAmount: booking.discountAmount || 0,
+    finalChargedAmount: booking.finalPrice || booking.price || amount,
+    bundleUsed: booking.bundleUsed || null,
     type: "BOOKING_PAYMENT",
-    paymentMethod: "INTERNAL_WALLET",
+    paymentMethod: "CARD",
     status: "COMPLETED",
   });
 

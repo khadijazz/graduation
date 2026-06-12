@@ -23,6 +23,10 @@ const bundleSchema = new mongoose.Schema({
   }],
   sessions:Number,
   validity:String,
+  isActive: {
+    type: Boolean,
+    default: true
+  },
   
   createdAt: {
     type: Date,

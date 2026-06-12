@@ -55,18 +55,32 @@ exports.deletebundle = async (req, res, next) => {
 
 
 exports.chooseBundle = async (req, res, next) => {
-  
+  try {
     const { bundleId } = req.body;
 
-    const bundle = await bundleService.getBundleByIdService(req.user,bundleId);
+    const bundle = await bundleService.getBundleByIdService(req.user, bundleId);
     if (!bundle) {
       return res.status(404).json({ message: "Bundle not found" });
+    }
+
+    if (bundle.isActive === false) {
+      return res.status(400).json({ message: "Bundle is inactive" });
+    }
+
+    const existingActive = await ClientBundle.findOne({
+      client: req.user._id,
+      bundle: bundle._id,
+      status: "ACTIVE"
+    });
+
+    if (existingActive) {
+      return res.status(400).json({ message: "You already have an active subscription for this bundle" });
     }
 
     const clientBundle = await ClientBundle.create({
       client: req.user._id,
       bundle: bundle._id,
-      price: bundle.bundlePrice,
+      price: bundle.price,
       status: "PENDING",
     });
 
@@ -74,6 +88,8 @@ exports.chooseBundle = async (req, res, next) => {
       message: "Bundle selected",
       data: clientBundle,
     });
-  
+  } catch (error) {
+    next(error);
+  }
 };
 

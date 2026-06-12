@@ -184,4 +184,18 @@ exports.updatePassword = async (req, res, next) => {
     data: token,
   });
 };
+
+exports.checkStatus = async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    throw new ApiError("Email and password are required", 400);
+  }
+  const status = await caregiverServices.checkCaregiverStatus(email, password);
+  res.status(200).json({
+    status: "success",
+    data: {
+      status
+    }
+  });
+};
  

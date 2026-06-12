@@ -21,8 +21,20 @@ const clientBundleSchema = new mongoose.Schema({
 
   status: {
     type: String,
-    enum: ["PENDING", "PAID", "ACTIVE", "CANCELLED"],
+    enum: ["PENDING", "PAID", "ACTIVE", "CANCELLED", "EXPIRED"],
     default: "PENDING",
+  },
+
+  purchaseDate: {
+    type: Date,
+  },
+
+  expirationDate: {
+    type: Date,
+  },
+
+  remainingUses: {
+    type: Number,
   },
 
 }, { timestamps: true });

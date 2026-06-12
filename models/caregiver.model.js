@@ -61,7 +61,29 @@ phoneNumber:{ type: String, unique: true },
   experience: { type: String },
   profile_picture: { type: String },
     certifications: [{ type: String }],
-    verifcation_documents: [{ type: String }],
+    verifcation_documents: { type: [String], select: false },
+    status: {
+      type: String,
+      enum: ["Pending Approval", "Verified", "Declined"],
+      default: "Pending Approval"
+    },
+    isBlocked: {
+      type: Boolean,
+      default: false
+    },
+    blockReason: {
+      type: String,
+      default: null
+    },
+    blockDate: {
+      type: Date,
+      default: null
+    },
+    blockedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "admin",
+      default: null
+    },
      passwordResetToken: String,          
    passwordResetExpires: Date,          
    passwordResetAttempts: {             

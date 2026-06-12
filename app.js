@@ -19,6 +19,7 @@ const reviewRouter = require("./routes/review.routes");
 const clientbundelRouter = require("./routes/clientbundel.route");
 const bundelRouter = require("./routes/bundel.routes");
 const adminRouter = require("./routes/admin.route");
+const complaintRouter = require("./routes/complaint.routes");
 const { ApiError } = require("./Utills/ApiError");
 
 app.get('/', (req, res) => {
@@ -52,6 +53,7 @@ app.use("/review", reviewRouter);
 app.use("/clientbundel", clientbundelRouter);
 app.use("/bundle", bundelRouter);
 app.use("/admin", adminRouter);
+app.use("/complaints", complaintRouter);
 
 app.use((req, res, next) => {
   res.status(404).json({

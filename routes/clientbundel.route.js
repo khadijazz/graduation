@@ -6,13 +6,12 @@ const {permittedTo} =require("../Utills/premittedTo");
 router.use(verifyUser);
 
 
-router.route("/")
-.post(permittedTo(["client"]),clientBundleController.chooseBundle)
-.get(clientBundleController.getallbundle);
+router.post("/chooseBundle/:bundleId",permittedTo(["client"]),clientBundleController.chooseBundle)
+router.get("/all",clientBundleController.getallbundle);
 
-router.route("/:id")
-.get(permittedTo(["client","admin"]),clientBundleController.getBundleById)
-.patch(permittedTo(["client"]),clientBundleController.payBundle)
-.delete(permittedTo(["client"]),clientBundleController.cancelBundle);
+
+router.get("/:id",permittedTo(["client","admin"]),clientBundleController.getBundleById)
+router.post("/payBundle/:id",permittedTo(["client"]),clientBundleController.payBundle)
+router.delete("/cancelBundle/:id",permittedTo(["client"]),clientBundleController.cancelBundle);
 
 module.exports=router;

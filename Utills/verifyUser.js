@@ -28,6 +28,19 @@ module.exports = async (req, res, next) => {
     throw new ApiError("user no longer exists", 401);
   }
 
+  if (user.isBlocked) {
+    throw new ApiError("Your account has been blocked. Please contact support.", 403);
+  }
+
+  if (user.role === "caregiver") {
+    if (user.status === "Pending Approval") {
+      throw new ApiError("Your account is pending approval.", 403);
+    }
+    if (user.status === "Declined") {
+      throw new ApiError("Your caregiver application has been declined.", 403);
+    }
+  }
+
   req.user = user;
   next();
 };

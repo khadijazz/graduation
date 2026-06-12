@@ -3,6 +3,7 @@ const Request = require("../models/request.model");
 const Offer = require("../models/offer.model");
 const Wallet = require("../models/wallet.model");
 const Transaction = require("../models/transaction.model");
+const ClientBundle = require("../models/clientbundel.model");
 const { ApiFeature } = require("../Utills/ApiFeature");
 const { ApiError } = require("../Utills/ApiError");
 const mongoose = require("mongoose");
@@ -80,44 +81,82 @@ const processPaymentAndConfirmBooking = async (offerId, userId) => {
       throw new ApiError("Wallet not found for this user", 404);
     }
 
-    if (wallet.balance < offer.price) {
+    // Check for active bundle subscription
+    const activeBundle = await ClientBundle.findOne({
+      client: userId,
+      status: "ACTIVE"
+    }).populate("bundle").session(session);
+
+    let discountAmount = 0;
+    let finalPrice = offer.price;
+    let appliedBundle = null;
+
+    if (activeBundle) {
+      const bundle = activeBundle.bundle;
+      if (bundle && bundle.isActive !== false) {
+        const now = new Date();
+        const isExpired = activeBundle.expirationDate && activeBundle.expirationDate < now;
+        const hasUsesRemaining = activeBundle.remainingUses === undefined || activeBundle.remainingUses === null || activeBundle.remainingUses > 0;
+
+        if (isExpired) {
+          activeBundle.status = "EXPIRED";
+          await activeBundle.save({ session });
+        } else if (hasUsesRemaining) {
+          appliedBundle = activeBundle;
+          const discountPercent = bundle.discount || 0;
+          discountAmount = (offer.price * discountPercent) / 100;
+          finalPrice = Math.max(0, offer.price - discountAmount);
+
+          if (activeBundle.remainingUses !== undefined && activeBundle.remainingUses !== null) {
+            activeBundle.remainingUses -= 1;
+            if (activeBundle.remainingUses <= 0) {
+              activeBundle.status = "EXPIRED";
+            }
+          }
+          await activeBundle.save({ session });
+        }
+      }
+    }
+
+    if (wallet.balance < finalPrice) {
       throw new ApiError("Insufficient wallet balance", 400);
     }
 
-
-
-    wallet.balance -= offer.price;
-
-    wallet.holdBalance = (wallet.holdBalance || 0) + offer.price;
-    wallet.totalSpent = (wallet.totalSpent || 0) + offer.price;
+    wallet.balance -= finalPrice;
+    wallet.holdBalance = (wallet.holdBalance || 0) + finalPrice;
+    wallet.totalSpent = (wallet.totalSpent || 0) + finalPrice;
     wallet.lastTransactionAt = new Date();
-
-
 
     const newBooking = new Booking({
       request: request._id,
       offer: offer._id,
       client: request.client,
       caregiver: offer.caregiver,
-      price: offer.price,
+      price: finalPrice,
+      originalPrice: offer.price,
+      discountAmount: discountAmount,
+      finalPrice: finalPrice,
+      bundleUsed: appliedBundle ? appliedBundle._id : null,
       bookingStatus: "ACCEPTED",
     });
 
     await newBooking.save({ session });
 
-
     const transaction = new Transaction({
       userlog: userId,
       wallet: wallet._id,
       booking: newBooking._id,
-      amount: offer.price,
+      amount: finalPrice,
+      originalAmount: offer.price,
+      discountAmount: discountAmount,
+      finalChargedAmount: finalPrice,
+      bundleUsed: appliedBundle ? appliedBundle._id : null,
       type: "BOOKING_PAYMENT",
-      paymentMethod: "INTERNAL_WALLET",
+      paymentMethod: "CARD",
       status: "COMPLETED",
     });
 
     await transaction.save({ session });
-
 
     wallet.transactions.push(transaction._id);
     await wallet.save({ session });

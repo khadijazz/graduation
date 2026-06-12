@@ -44,6 +44,23 @@ const bookingSchema = new mongoose.Schema({
     default: "PENDING",
   },
 
+  originalPrice: {
+    type: Number,
+  },
+
+  discountAmount: {
+    type: Number,
+    default: 0,
+  },
+
+  finalPrice: {
+    type: Number,
+  },
+
+  bundleUsed: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "ClientBundle",
+  },
 
 }, { timestamps: true });
 
