@@ -1,17 +1,18 @@
 const express = require("express");
 const router = express.Router();
 const reviewController = require("../controllers/review.controller");
-const verifyUser=require("../Utills/verifyUser")
-const {permittedTo} =require("../Utills/premittedTo");
+const verifyUser = require("../Utills/verifyUser")
+const { permittedTo } = require("../Utills/premittedTo");
 router.use(verifyUser);
 
-router.route("/")
-.post(permittedTo(["client","caregiver"]),reviewController.createReview)
-.get(permittedTo(["admin"]),reviewController.getAllReviews);
+router.post("/create_review/:bookingId", permittedTo(["client"]), reviewController.createReview)
+router.get("/getAllReviews",permittedTo(["admin"]), reviewController.getAllReviews);
 
-router.route("/:id")
-.get(permittedTo(["client","caregiver","admin"]),reviewController.getReviewById)
-.patch(permittedTo(["client","caregiver"]),reviewController.updateReview)
-.delete(permittedTo(["client","caregiver","admin"]),reviewController.deleteReview);
+router.get("/caregiver/:caregiverId", permittedTo(["client", "caregiver", "admin"]), reviewController.getCaregiverReviews);
+
+
+router.get("/:id",permittedTo(["client","caregiver","admin"]),reviewController.getReviewById)
+router.patch("/:id",permittedTo(["client"]),reviewController.updateReview)
+router.delete("/:id",permittedTo(["client"]),reviewController.deleteReview);
 
 module.exports=router;

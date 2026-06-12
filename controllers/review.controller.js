@@ -1,24 +1,24 @@
 const reviewService = require("../services/review.services");
 const { ApiError } = require("../Utills/ApiError");
 const Review = require("../models/review.model");
+const Caregiver = require("../models/caregiver.model");
 
 exports.createReview = async (req, res, next) => {
-    const review = await reviewService.createReviewService(req, res, next);
+    const review = await reviewService.createReviewService(req);
     res.status(201).json({
+        status: "success",
         message: "Review created successfully",
-        data: review,
+        data: {
+            review
+        },
     });
 };
 
 exports.getCaregiverReviews = async (req, res, next) => {
-    const { caregiverId } = req.params;
-
-    const reviews = await Review.find({ caregiver: caregiverId })
-      .populate("client", "full_name");
-     
+    const result = await reviewService.getCaregiverReviewsService(req);
     res.status(200).json({
-      status: "success",
-      data: reviews,
+        status: "success",
+        data: result,
     });
 };
 
@@ -33,12 +33,13 @@ exports.getMyReviews = async (req, res, next) => {
 };
 
 exports.getAllReviews = async (req, res, next) => {
-    const reviews = await Review.find({})
-      .populate("client", "full_name")
-      .populate("caregiver", "full_name");
+    const reviews = await reviewService.adminGetReviewsService(req);
     res.status(200).json({
         status: "success",
-        data: reviews,
+        length: reviews.length,
+        data: {
+            reviews
+        },
     });
 };
 
@@ -61,22 +62,57 @@ exports.updateReview = async (req, res, next) => {
         throw new ApiError("Review not found", 404);
     }
 
-    
-    const userId = req.user._id.toString();
-    if (review.client.toString() !== userId && review.caregiver.toString() !== userId) {
+    if (req.user.role !== "client" || review.client.toString() !== req.user._id.toString()) {
         throw new ApiError("Unauthorized to update this review", 403);
+    }
+
+    const {
+        overallRating,
+        professionalismRating,
+        serviceQualityRating,
+        punctualityRating,
+        communicationRating,
+        reviewComment
+    } = req.body;
+
+    const updates = {};
+    if (overallRating !== undefined) updates.overallRating = Number(overallRating);
+    if (professionalismRating !== undefined) updates.professionalismRating = Number(professionalismRating);
+    if (serviceQualityRating !== undefined) updates.serviceQualityRating = Number(serviceQualityRating);
+    if (punctualityRating !== undefined) updates.punctualityRating = Number(punctualityRating);
+    if (communicationRating !== undefined) updates.communicationRating = Number(communicationRating);
+    if (reviewComment !== undefined) updates.reviewComment = reviewComment;
+
+    for (const key of ['overallRating', 'professionalismRating', 'serviceQualityRating', 'punctualityRating', 'communicationRating']) {
+        if (updates[key] !== undefined && (isNaN(updates[key]) || updates[key] < 1 || updates[key] > 5)) {
+            throw new ApiError("All ratings must be numbers between 1 and 5", 400);
+        }
     }
 
     const updatedReview = await Review.findByIdAndUpdate(
         req.params.id,
-        { rating: req.body.rating, review: req.body.review, feedback: req.body.feedback },
+        updates,
         { new: true, runValidators: true }
     );
+
+    if (overallRating !== undefined) {
+        const caregiverReviews = await Review.find({ caregiver: review.caregiver });
+        const totalReviewsCount = caregiverReviews.length;
+        const sumRatings = caregiverReviews.reduce((sum, r) => sum + r.overallRating, 0);
+        const averageRating = sumRatings / totalReviewsCount;
+
+        await Caregiver.findByIdAndUpdate(review.caregiver, {
+            averageRating: parseFloat(averageRating.toFixed(2)),
+            totalReviewsCount
+        });
+    }
 
     res.status(200).json({
         status: "success",
         message: "Review updated successfully",
-        data: updatedReview,
+        data: {
+            review: updatedReview
+        },
     });
 };
 
@@ -86,14 +122,25 @@ exports.deleteReview = async (req, res, next) => {
         throw new ApiError("Review not found", 404);
     }
 
-    
-    const userId = req.user._id.toString();
-    const isAdmin = req.user.role === "admin";
-    if (!isAdmin && review.client.toString() !== userId && review.caregiver.toString() !== userId) {
+    if (req.user.role !== "client" || review.client.toString() !== req.user._id.toString()) {
         throw new ApiError("Unauthorized to delete this review", 403);
     }
 
     await Review.findByIdAndDelete(req.params.id);
+
+    const caregiverReviews = await Review.find({ caregiver: review.caregiver });
+    const totalReviewsCount = caregiverReviews.length;
+    let averageRating = 0;
+    if (totalReviewsCount > 0) {
+        const sumRatings = caregiverReviews.reduce((sum, r) => sum + r.overallRating, 0);
+        averageRating = sumRatings / totalReviewsCount;
+    }
+
+    await Caregiver.findByIdAndUpdate(review.caregiver, {
+        averageRating: parseFloat(averageRating.toFixed(2)),
+        totalReviewsCount
+    });
+
     res.status(200).json({
         status: "success",
         message: "Review deleted successfully",

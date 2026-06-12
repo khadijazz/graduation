@@ -132,6 +132,7 @@ exports.payBundle = async (req, res, next) => {
       type: "payment",
       status: "COMPLETED",
       description: "Bundle payment",
+      bundleUsed: clientBundle._id,
     });
     await transaction.save({ session });
 
@@ -191,6 +192,7 @@ exports.cancelBundle = async (req, res, next) => {
         type: "refund",
         status: "COMPLETED",
         description: "Bundle refund",
+        bundleUsed: clientBundle._id,
       });
     }
 

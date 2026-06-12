@@ -1,101 +1,128 @@
 const Review = require("../models/review.model");
+const Booking = require("../models/booking.model");
+const Caregiver = require("../models/caregiver.model");
 const { ApiError } = require("../Utills/ApiError");
-const Request = require("../models/request.model");
 
-exports.createReviewService = async (req, res, next) => {
-    const { requestId, rate, feedback } = req.body;
+exports.createReviewService = async (req) => {
+ const { bookingId } = req.params;
+    const {
+        overallRating,
+        professionalismRating,
+        serviceQualityRating,
+        punctualityRating,
+        communicationRating,
+        reviewComment
+    } = req.body;
 
-    const request = await Request.findById(requestId);
-
-    if (!request) {
-      return res.status(404).json({ message: "Request not found" });
+    if (!bookingId) {
+        throw new ApiError("Booking ID is required", 400);
     }
 
-    if (req.user.role !== "CLIENT" && req.user.role !== "CAREGIVER") {
-      return res.status(403).json({ message: "Unauthorized" });
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+        throw new ApiError("Booking not found", 404);
     }
 
-    if (request.status !== "COMPLETED") {
-      return res.status(400).json({ message: "Request not completed yet" });
+    // Verify booking belongs to authenticated client
+    if (booking.client.toString() !== req.user._id.toString()) {
+        throw new ApiError("Unauthorized to review this booking", 403);
     }
 
-    let reviewData = {};
-
-    if (req.user.role === "CLIENT") {
-      if (request.client.toString() !== req.user._id.toString()) {
-        return res.status(403).json({ message: "Not your request" });
-      }
-
-      reviewData = {
-        client: req.user._id,
-        caregiver: request.caregiver,
-        request: request._id,
-        rate,
-        feedback,
-      };
-
-    } else {
-      if (request.caregiver.toString() !== req.user._id.toString()) {
-        return res.status(403).json({ message: "Not your request" });
-      }
-
-      reviewData = {
-        client: request.client,
-        caregiver: req.user._id,
-        request: request._id,
-        rate,
-        feedback,
-      };
+    // Verify booking status is completed
+    if (booking.bookingStatus !== "COMPLETED") {
+        throw new ApiError("Reviews can only be submitted for completed bookings", 400);
     }
 
-    let existing;
-
-if (req.user.role === "CLIENT") {
-  existing = await Review.findOne({
-    request: requestId,
-    client: req.user._id,
-  });
-} else {
-  existing = await Review.findOne({
-    request: requestId,
-    caregiver: req.user._id,
-  });
-}
-
+    // Verify no review exists for this booking
+    const existing = await Review.findOne({ booking: bookingId });
     if (existing) {
-      return res.status(400).json({ message: "Already reviewed" });
+        throw new ApiError("A review already exists for this booking", 400);
     }
 
-    const review = await Review.create(reviewData);
+    // Verify ratings are between 1 and 5
+    const ratings = [overallRating, professionalismRating, serviceQualityRating, punctualityRating, communicationRating];
+    for (const r of ratings) {
+        if (r === undefined || r === null || isNaN(Number(r)) || Number(r) < 1 || Number(r) > 5) {
+            throw new ApiError("All ratings must be numbers between 1 and 5", 400);
+        }
+    }
 
-    res.status(201).json({
-      message: "Review created",
-      data: review,
+    // Create review
+    const review = await Review.create({
+        booking: bookingId,
+        client: req.user._id,
+        caregiver: booking.caregiver,
+        overallRating: Number(overallRating),
+        professionalismRating: Number(professionalismRating),
+        serviceQualityRating: Number(serviceQualityRating),
+        punctualityRating: Number(punctualityRating),
+        communicationRating: Number(communicationRating),
+        reviewComment: reviewComment || ""
     });
-}
 
-exports.getCaregiverReviewsService = async (req, res, next) => {
-    const { caregiverId } = req.params;
+    // Recalculate caregiver rating statistics
+    const caregiverReviews = await Review.find({ caregiver: booking.caregiver });
+    const totalReviewsCount = caregiverReviews.length;
+    const sumRatings = caregiverReviews.reduce((sum, r) => sum + r.overallRating, 0);
+    const averageRating = sumRatings / totalReviewsCount;
 
-    const reviews = await Review.find({ caregiver: caregiverId })
-      .populate("client", "name")
-     
-
-    res.status(200).json({
-      data: reviews,
+    await Caregiver.findByIdAndUpdate(booking.caregiver, {
+        averageRating: parseFloat(averageRating.toFixed(2)),
+        totalReviewsCount
     });
- 
+
+    return review;
 };
 
-exports.getMyReviewsService = async (req, res, next) => {
-    const reviews = await Review.find({ client: req.user._id })
-      .populate("caregiver", "name")
-      
+exports.getCaregiverReviewsService = async (req) => {
+    const { caregiverId } = req.params;
 
-    res.status(200).json({
-      data: reviews,
+    const caregiver = await Caregiver.findById(caregiverId);
+    if (!caregiver) {
+        throw new ApiError("Caregiver not found", 404);
+    }
+
+    const reviews = await Review.find({ caregiver: caregiverId })
+        .populate("client", "full_name profile_picture");
+
+    // Calculate rating breakdown
+    const ratingBreakdown = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    reviews.forEach(r => {
+        const rating = Math.round(r.overallRating);
+        if (ratingBreakdown[rating] !== undefined) {
+            ratingBreakdown[rating]++;
+        }
     });
- 
+
+    return {
+        reviews,
+        averageRating: caregiver.averageRating || 0,
+        totalReviewsCount: caregiver.totalReviewsCount || 0,
+        ratingBreakdown
+    };
+};
+
+exports.adminGetReviewsService = async (req) => {
+    const { caregiver, client, rating, startDate, endDate } = req.query;
+
+    const filter = {};
+    if (caregiver) filter.caregiver = caregiver;
+    if (client) filter.client = client;
+    if (rating) filter.overallRating = Number(rating);
+
+    if (startDate || endDate) {
+        filter.createdAt = {};
+        if (startDate) filter.createdAt.$gte = new Date(startDate);
+        if (endDate) filter.createdAt.$lte = new Date(endDate);
+    }
+
+    const reviews = await Review.find(filter)
+        .populate("client", "full_name email")
+        .populate("caregiver", "full_name email")
+        .populate("booking", "_id bookingStatus price")
+        .sort({ createdAt: -1 });
+
+    return reviews;
 };
 
 

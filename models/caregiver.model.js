@@ -84,6 +84,14 @@ phoneNumber:{ type: String, unique: true },
       ref: "admin",
       default: null
     },
+    averageRating: {
+      type: Number,
+      default: 0
+    },
+    totalReviewsCount: {
+      type: Number,
+      default: 0
+    },
      passwordResetToken: String,          
    passwordResetExpires: Date,          
    passwordResetAttempts: {             

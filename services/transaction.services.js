@@ -4,7 +4,29 @@ const {ApiFeature}=require("../Utills/ApiFeature.js");
 
 const createTransaction = (data) => transaction.create(data);
 const getalltransaction = (queryParams) =>{
-    const apiFeature=new ApiFeature(transaction.find({}),queryParams);
+    const apiFeature=new ApiFeature(
+        transaction.find({})
+            .populate("userlog")
+            .populate({
+                path: "booking",
+                populate: [
+                    { path: "client" },
+                    { path: "caregiver" },
+                    {
+                        path: "request",
+                        populate: { path: "service" }
+                    }
+                ]
+            })
+            .populate({
+                path: "bundleUsed",
+                populate: [
+                    { path: "client" },
+                    { path: "bundle" }
+                ]
+            }),
+        queryParams
+    );
     apiFeature.paginate();
     apiFeature.sort();
     apiFeature.projection();
