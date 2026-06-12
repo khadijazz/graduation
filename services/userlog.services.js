@@ -60,6 +60,20 @@ let userDoc=await Userlog.findOne({email:data.email}).select("+password");
 if(!userDoc){
     throw new ApiError("no user found with this email",400);
 }
+
+if (userDoc.isBlocked) {
+    throw new ApiError("Your account has been blocked. Please contact support.", 403);
+}
+
+if (userType === "caregiver") {
+    if (userDoc.status === "Pending Approval") {
+        throw new ApiError("Your account is pending approval.", 403);
+    }
+    if (userDoc.status === "Declined") {
+        throw new ApiError("Your caregiver application has been declined.", 403);
+    }
+}
+
 const hashedSaltedPassword=userDoc.password;
 const password=data.password;
 const isTheOne=await bcrypt.compare(password,hashedSaltedPassword);
