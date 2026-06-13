@@ -2,6 +2,7 @@ const Review = require("../models/review.model");
 const Booking = require("../models/booking.model");
 const Caregiver = require("../models/caregiver.model");
 const { ApiError } = require("../Utills/ApiError");
+const { createNotification } = require("./notification.services");
 
 exports.createReviewService = async (req) => {
  const { bookingId } = req.params;
@@ -69,6 +70,16 @@ exports.createReviewService = async (req) => {
     await Caregiver.findByIdAndUpdate(booking.caregiver, {
         averageRating: parseFloat(averageRating.toFixed(2)),
         totalReviewsCount
+    });
+
+    await createNotification({
+      recipientId: booking.caregiver,
+      recipientRole: "caregiver",
+      notificationType: "REVIEW_SUBMITTED",
+      title: "New Review",
+      message: "You have received a new review from a client.",
+      relatedEntityId: review._id,
+      relatedEntityType: "Review"
     });
 
     return review;
