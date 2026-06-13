@@ -1,6 +1,7 @@
 const offerModel = require("../models/offer.model");
 const requestModel = require("../models/request.model");
 const { ApiError } = require("../Utills/ApiError");
+const { createNotification } = require("./notification.services");
 
 const createOfferService = async (user,data) => {
   const { requestId, price, notes } = data;
@@ -15,12 +16,24 @@ const createOfferService = async (user,data) => {
   throw new Error("Request unavailable");
 }
 
-  return await offerModel.create({
+  const offer = await offerModel.create({
     request: requestId,
     caregiver: user._id,
     price,
     notes,
   });
+
+  await createNotification({
+    recipientId: request.client,
+    recipientRole: "client",
+    notificationType: "NEW_OFFER_RECEIVED",
+    title: "New Offer Received",
+    message: "You have received a new offer for your request.",
+    relatedEntityId: offer._id,
+    relatedEntityType: "Offer"
+  });
+
+  return offer;
 };
 
 const deleteOfferService=async (offerId,userId) => {

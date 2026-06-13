@@ -2,6 +2,7 @@ const axios = require("axios");
 const Wallet = require("../models/wallet.model");
 const Transaction = require("../models/transaction.model");
 const Booking = require("../models/booking.model");
+const { createNotification } = require("./notification.services");
 
 const PAYMOB_API_KEY = process.env.PAYMOB_API_KEY;
 const PAYMOB_API_URL = process.env.PAYMOB_API_URL;
@@ -209,6 +210,16 @@ exports.handlePaymobCallback = async (body, query) => {
 
   await wallet.save();
 
+  await createNotification({
+    recipientId: transaction.userlog,
+    recipientRole: transaction.ownerModel === "Caregiver" ? "caregiver" : "client",
+    notificationType: "WALLET_RECHARGED",
+    title: "Wallet Recharge",
+    message: "Your wallet has been recharged successfully.",
+    relatedEntityId: transaction._id,
+    relatedEntityType: "Transaction"
+  });
+
   console.log("Wallet updated successfully");
 
   return {
@@ -269,6 +280,26 @@ exports.payBookingFromWallet = async (user, body) => {
 
   booking.bookingStatus = "CONFIRMED";
   await booking.save();
+
+  await createNotification({
+    recipientId: booking.client,
+    recipientRole: "client",
+    notificationType: "BOOKING_CONFIRMED",
+    title: "Booking Confirmed",
+    message: "Booking confirmed successfully.",
+    relatedEntityId: booking._id,
+    relatedEntityType: "Booking"
+  });
+
+  await createNotification({
+    recipientId: booking.caregiver,
+    recipientRole: "caregiver",
+    notificationType: "BOOKING_CONFIRMED",
+    title: "Booking Confirmed",
+    message: "Booking confirmed successfully.",
+    relatedEntityId: booking._id,
+    relatedEntityType: "Booking"
+  });
 
   return {
     message: "Booking paid successfully from wallet",

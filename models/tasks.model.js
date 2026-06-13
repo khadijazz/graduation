@@ -57,6 +57,9 @@ const tasksSchema = mongoose.Schema({
     checkOutTime: {
         type: Date,
     },
+    completedAt: {
+        type: Date,
+    },
     proofFiles: [proofFileSchema],
 
 }, { strict: true })

@@ -4,6 +4,7 @@ const clientBundleModel = require("../models/clientbundel.model");
 const bundleModel = require("../models/bundel.model");
 const Wallet = require("../models/wallet.model");
 const Transaction = require("../models/transaction.model");
+const { createNotification } = require("../services/notification.services");
 
 function calculateExpirationDate(purchaseDate, validity) {
   if (!validity) return null;
@@ -144,6 +145,16 @@ exports.payBundle = async (req, res, next) => {
 
     await session.commitTransaction();
     session.endSession();
+
+    await createNotification({
+      recipientId: req.user._id,
+      recipientRole: "client",
+      notificationType: "BUNDLE_PURCHASED",
+      title: "Bundle Purchased",
+      message: "Bundle purchased successfully.",
+      relatedEntityId: clientBundle._id,
+      relatedEntityType: "ClientBundle"
+    });
 
     res.status(200).json({
       message: "Bundle paid successfully and subscription is active",

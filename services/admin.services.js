@@ -7,6 +7,7 @@ const Request = require("../models/request.model");
 const Userlog = require("../models/userlog.model");
 const sendEmail = require("../Utills/email");
 const { ApiError } = require("../Utills/ApiError");
+const { createNotification } = require("./notification.services");
 
 const createadmin = async (data) => {
   const { name, email, password, passwordConfirmation,level ,role ,address} = data;
@@ -60,6 +61,16 @@ const verifyCaregiver = async (caregiverId) => {
   caregiver.status = "Verified";
   await caregiver.save();
 
+  await createNotification({
+    recipientId: caregiver._id,
+    recipientRole: "caregiver",
+    notificationType: "CAREGIVER_APPROVED",
+    title: "Account Approved",
+    message: "Your caregiver account has been approved.\nYou can now log in and start using the platform.",
+    relatedEntityId: caregiver._id,
+    relatedEntityType: "Caregiver"
+  });
+
   try {
     await sendEmail({
       email: caregiver.email,
@@ -80,6 +91,16 @@ const rejectCaregiver = async (caregiverId, reason) => {
 
   caregiver.status = "Declined";
   await caregiver.save();
+
+  await createNotification({
+    recipientId: caregiver._id,
+    recipientRole: "caregiver",
+    notificationType: "CAREGIVER_REJECTED",
+    title: "Application Status Update",
+    message: "Your caregiver application has been rejected.\nPlease review the provided reason and contact support if needed.",
+    relatedEntityId: caregiver._id,
+    relatedEntityType: "Caregiver"
+  });
 
   const rejectionReasonMsg = reason ? `Reason for rejection: ${reason}` : "";
   const message = `Hello ${caregiver.full_name},\n\nWe regret to inform you that your caregiver application has been declined.\n\n${rejectionReasonMsg}\n\nIf you have any questions or would like to submit additional documents, please contact support.\n\nBest regards,\nEhtmam Team`;
@@ -119,6 +140,16 @@ const updateComplaintStatusService = async (complaintId, status) => {
   }
   complaint.status = status;
   await complaint.save();
+
+  await createNotification({
+    recipientId: complaint.user,
+    recipientRole: "client",
+    notificationType: "COMPLAINT_STATUS_UPDATED",
+    title: "Complaint Status Updated",
+    message: "Your complaint status has been updated.",
+    relatedEntityId: complaint._id,
+    relatedEntityType: "Complaint"
+  });
   return complaint;
 };
 
@@ -137,6 +168,16 @@ const blockUserService = async (userId, reason, adminId) => {
   account.blockDate = new Date();
   account.blockedBy = adminId;
   await account.save();
+
+  await createNotification({
+    recipientId: account._id,
+    recipientRole: type,
+    notificationType: "ACCOUNT_BLOCKED",
+    title: "Account Blocked",
+    message: "Your account has been blocked.\nPlease contact support for additional information.",
+    relatedEntityId: account._id,
+    relatedEntityType: type === "client" ? "Userlog" : "Caregiver"
+  });
   return { account, type };
 };
 
@@ -155,6 +196,16 @@ const unblockUserService = async (userId) => {
   account.blockDate = null;
   account.blockedBy = null;
   await account.save();
+
+  await createNotification({
+    recipientId: account._id,
+    recipientRole: type,
+    notificationType: "ACCOUNT_REACTIVATED",
+    title: "Account Reactivated",
+    message: "Your account has been reactivated.\nYou can now access the platform again.",
+    relatedEntityId: account._id,
+    relatedEntityType: type === "client" ? "Userlog" : "Caregiver"
+  });
   return { account, type };
 };
 

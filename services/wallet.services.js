@@ -1,6 +1,9 @@
 const Wallet = require("../models/wallet.model");
 const Transaction = require("../models/transaction.model");
 const { ApiFeature } = require("../Utills/ApiFeature");
+const { createNotification } = require("./notification.services");
+const Userlog = require("../models/userlog.model");
+const Caregiver = require("../models/caregiver.model");
 
 const getMyWalletService = async (userId) => {
     const wallet = await Wallet.findOne({ user: userId });
@@ -41,12 +44,29 @@ const depositService = async (userId, amount) => {
   await wallet.save();
 
  
-  await Transaction.create({
+  const transaction = await Transaction.create({
     user: userId,
     wallet: wallet._id,
     type: "DEPOSIT",
     amount,
     status: "COMPLETED",
+  });
+
+  let user = await Userlog.findById(userId);
+  let role = "client";
+  if (!user) {
+    user = await Caregiver.findById(userId);
+    role = "caregiver";
+  }
+
+  await createNotification({
+    recipientId: userId,
+    recipientRole: role,
+    notificationType: "WALLET_RECHARGED",
+    title: "Wallet Recharge",
+    message: "Your wallet has been recharged successfully.",
+    relatedEntityId: transaction._id,
+    relatedEntityType: "Transaction"
   });
 
   return wallet;

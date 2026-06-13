@@ -7,6 +7,7 @@ const ClientBundle = require("../models/clientbundel.model");
 const { ApiFeature } = require("../Utills/ApiFeature");
 const { ApiError } = require("../Utills/ApiError");
 const mongoose = require("mongoose");
+const { createNotification } = require("./notification.services");
 
 
 
@@ -39,6 +40,26 @@ const confirmBookingAndPay = async (bookingId, userId) => {
 
   booking.bookingStatus = "CONFIRMED";
   await booking.save();
+
+  await createNotification({
+    recipientId: booking.client,
+    recipientRole: "client",
+    notificationType: "BOOKING_CONFIRMED",
+    title: "Booking Confirmed",
+    message: "Booking confirmed successfully.",
+    relatedEntityId: booking._id,
+    relatedEntityType: "Booking"
+  });
+
+  await createNotification({
+    recipientId: booking.caregiver,
+    recipientRole: "caregiver",
+    notificationType: "BOOKING_CONFIRMED",
+    title: "Booking Confirmed",
+    message: "Booking confirmed successfully.",
+    relatedEntityId: booking._id,
+    relatedEntityType: "Booking"
+  });
 
   return booking;
 };
@@ -178,6 +199,39 @@ const processPaymentAndConfirmBooking = async (offerId, userId) => {
     request.status = "ACCEPTED";
     request.caregiver = offer.caregiver;
     await request.save({ session });
+
+    await createNotification({
+      recipientId: offer.caregiver,
+      recipientRole: "caregiver",
+      notificationType: "OFFER_ACCEPTED",
+      title: "Offer Accepted",
+      message: "Your offer has been accepted.\nA booking has been created successfully.",
+      relatedEntityId: newBooking._id,
+      relatedEntityType: "Booking"
+    });
+
+    await createNotification({
+      recipientId: request.client,
+      recipientRole: "client",
+      notificationType: "BOOKING_CREATED",
+      title: "Booking Created",
+      message: "Your booking has been created successfully.",
+      relatedEntityId: newBooking._id,
+      relatedEntityType: "Booking"
+    });
+
+    const otherOffers = await Offer.find({ request: request._id, _id: { $ne: offer._id } }).session(session);
+    for (const otherOffer of otherOffers) {
+      await createNotification({
+        recipientId: otherOffer.caregiver,
+        recipientRole: "caregiver",
+        notificationType: "OFFER_REJECTED",
+        title: "Offer Rejected",
+        message: "Your offer was not selected by the client.",
+        relatedEntityId: otherOffer._id,
+        relatedEntityType: "Offer"
+      });
+    }
 
 
     await session.commitTransaction();

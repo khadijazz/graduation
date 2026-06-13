@@ -24,6 +24,9 @@ router.route("/process-payment/:offerId")
 router.route("/:bookingId/tasks")
     .get(permittedTo(["client", "caregiver"]), bookingController.getBookingTasks);
 
+router.route("/:bookingId/progress")
+    .get(permittedTo(["client"]), bookingController.getBookingProgress);
+
 router.route("/:bookingId/location")
     .post(permittedTo(["caregiver"]), locationController.updateLocation)
     .get(permittedTo(["client", "caregiver"]), locationController.getLocation);

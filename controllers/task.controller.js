@@ -3,6 +3,7 @@ const { ApiError } = require("../Utills/ApiError");
 const Booking = require("../models/booking.model");
 const Task = require("../models/tasks.model");
 const { uploadToCloudinary } = require("../Utills/uploadCloudinary");
+const { createNotification } = require("../services/notification.services");
 
 exports.createTasks = async (req, res, next) => {
 
@@ -59,6 +60,16 @@ exports.checkIn = async (req, res, next) => {
     booking.isTrackingActive = true;
     await booking.save();
 
+    await createNotification({
+      recipientId: booking.client,
+      recipientRole: "client",
+      notificationType: "CAREGIVER_CHECKED_IN",
+      title: "Caregiver Checked In",
+      message: "Your caregiver has checked in and started the service.",
+      relatedEntityId: booking._id,
+      relatedEntityType: "Booking"
+    });
+
     await Task.updateMany(
       { request: booking.request },
       {
@@ -111,6 +122,36 @@ exports.checkOut = async (req, res, next) => {
     booking.isTrackingActive = false;
     await booking.save();
 
+    await createNotification({
+      recipientId: booking.client,
+      recipientRole: "client",
+      notificationType: "CAREGIVER_CHECKED_OUT",
+      title: "Caregiver Checked Out",
+      message: "Your caregiver has checked out and completed the service session.",
+      relatedEntityId: booking._id,
+      relatedEntityType: "Booking"
+    });
+
+    await createNotification({
+      recipientId: booking.client,
+      recipientRole: "client",
+      notificationType: "BOOKING_COMPLETED",
+      title: "Booking Completed",
+      message: "Booking completed successfully.",
+      relatedEntityId: booking._id,
+      relatedEntityType: "Booking"
+    });
+
+    await createNotification({
+      recipientId: booking.caregiver,
+      recipientRole: "caregiver",
+      notificationType: "BOOKING_COMPLETED",
+      title: "Booking Completed",
+      message: "Booking completed successfully.",
+      relatedEntityId: booking._id,
+      relatedEntityType: "Booking"
+    });
+
     await Task.updateMany(
       {
         request: booking.request,
@@ -119,6 +160,7 @@ exports.checkOut = async (req, res, next) => {
       {
         taskState: "Completed",
         checkOutTime,
+        completedAt: checkOutTime,
       }
     );
 
@@ -177,7 +219,19 @@ exports.uploadProof = async (req, res, next) => {
       fileType: fileType,
       uploadDate: new Date()
     });
+    task.taskState = "Completed";
+    task.completedAt = new Date();
     await task.save();
+
+    await createNotification({
+      recipientId: booking.client,
+      recipientRole: "client",
+      notificationType: "TASK_COMPLETED",
+      title: "Task Completed",
+      message: "A task has been completed and proof has been uploaded.",
+      relatedEntityId: task._id,
+      relatedEntityType: "tasks"
+    });
 
     res.status(200).json({
       success: true,
@@ -202,7 +256,11 @@ exports.getTaskById = async (req, res, next) => {
 };
 
 exports.updateTask = async (req, res, next) => {
-  const Task = await taskServices.updatetasks(req.params.id, req.body);
+  const updates = { ...req.body };
+  if (updates.taskState && updates.taskState.toLowerCase() === "completed") {
+    updates.completedAt = new Date();
+  }
+  const Task = await taskServices.updatetasks(req.params.id, updates);
   res.status(200).json({
     message: "task updated successfully",
     status: "success",
