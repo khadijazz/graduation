@@ -63,7 +63,11 @@ const bookingSchema = new mongoose.Schema({
     ref: "ClientBundle",
   },
   checkInTime: Date,
-checkOutTime: Date,
+  checkOutTime: Date,
+  isTrackingActive: {
+    type: Boolean,
+    default: false,
+  },
 
 }, { timestamps: true });
 

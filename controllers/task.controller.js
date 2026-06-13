@@ -56,6 +56,7 @@ exports.checkIn = async (req, res, next) => {
 
     booking.bookingStatus = "IN_PROGRESS";
     booking.checkInTime = checkInTime;
+    booking.isTrackingActive = true;
     await booking.save();
 
     await Task.updateMany(
@@ -73,6 +74,7 @@ exports.checkIn = async (req, res, next) => {
         bookingId: booking._id,
         bookingStatus: booking.bookingStatus,
         checkInTime,
+        isTrackingActive: booking.isTrackingActive,
       },
     });
   } catch (error) {
@@ -106,6 +108,7 @@ exports.checkOut = async (req, res, next) => {
 
     booking.bookingStatus = "COMPLETED";
     booking.checkOutTime = checkOutTime;
+    booking.isTrackingActive = false;
     await booking.save();
 
     await Task.updateMany(
@@ -126,6 +129,7 @@ exports.checkOut = async (req, res, next) => {
         bookingId: booking._id,
         bookingStatus: booking.bookingStatus,
         checkOutTime,
+        isTrackingActive: booking.isTrackingActive,
       },
     });
   } catch (error) {
