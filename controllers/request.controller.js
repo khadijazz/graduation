@@ -1,23 +1,67 @@
 const requestModel = require("../models/request.model");
 const requestService = require("../services/request.services");
+const taskServices = require("../services/task.services");
 const { ApiError } = require("../Utills/ApiError");
 
 exports.createRequest = async (req, res, next) => {
-  if (!req.user.governorate) {
-    throw new ApiError("Client account does not have a governorate assigned. Please update your profile.", 400);
+  try {
+    if (!req.user.governorate) {
+      throw new ApiError("Client account does not have a governorate assigned. Please update your profile.", 400);
+    }
+
+    const { tasks, ...requestData } = req.body;
+
+    // Edge Case: Request without Tasks / Empty tasks array
+    if (!tasks || !Array.isArray(tasks) || tasks.length === 0) {
+      throw new ApiError("Tasks array is required and cannot be empty", 400);
+    }
+
+    // Edge Case: Duplicate task creation
+    const titles = tasks.map(t => (t.title || t.taskDescription || "").trim());
+    const hasDuplicates = titles.some((title, index) => titles.indexOf(title) !== index);
+    if (hasDuplicates) {
+      throw new ApiError("Duplicate tasks are not allowed in the request", 400);
+    }
+
+    let request = await requestService.createRequestService({
+      ...requestData,
+      client: req.user._id,
+      governorate: req.user.governorate, 
+    });
+
+    try {
+      const tasksData = tasks.map(task => {
+        const description = task.title || task.taskDescription;
+        // Edge Case: Invalid task data
+        if (!description || typeof description !== "string" || !description.trim()) {
+          throw new ApiError("Invalid task data: title or taskDescription is required and must be a non-empty string", 400);
+        }
+        return {
+          taskDescription: description.trim(),
+          request: request._id,
+          taskState: "Pending"
+        };
+      });
+
+      const createdTasks = await taskServices.createTasks(tasksData);
+
+      res.status(201).json({
+        success: true,
+        message: "Request and tasks created successfully",
+        data: {
+          ...request.toObject(),
+          tasks: createdTasks
+        },
+      });
+    } catch (err) {
+      // Edge Case: Request created successfully but task creation fails
+      // Rollback: delete request
+      await requestService.deleterequest(request._id);
+      return next(err);
+    }
+  } catch (error) {
+    return next(error);
   }
-
-  const request = await requestService.createRequestService({
-    ...req.body,
-    client: req.user._id,
-    governorate: req.user.governorate, 
-  });
-
-  res.status(201).json({
-    success: true,
-    message: "Request created successfully",
-    data: request,
-  });
 };
 
 exports.getMyRequests = async (req, res, next) => {

@@ -32,17 +32,18 @@ const bookingSchema = new mongoose.Schema({
     required: true,
   },
 
-  bookingStatus: {
-    type: String,
-    enum: [
-      "PENDING",
-      "ACCEPTED",
-      "CONFIRMED",
-      "COMPLETED",
-      "CANCELLED"
-    ],
-    default: "PENDING",
-  },
+ bookingStatus: {
+  type: String,
+  enum: [
+    "PENDING",
+    "ACCEPTED",
+    "CONFIRMED",
+    "IN_PROGRESS",
+    "COMPLETED",
+    "CANCELLED"
+  ],
+  default: "PENDING"
+},
 
   originalPrice: {
     type: Number,
@@ -61,6 +62,8 @@ const bookingSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "ClientBundle",
   },
+  checkInTime: Date,
+checkOutTime: Date,
 
 }, { timestamps: true });
 
