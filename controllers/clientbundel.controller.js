@@ -77,25 +77,11 @@ exports.payBundle = async (req, res, next) => {
   session.startTransaction();
 
   try {
-    const clientBundleId = req.params.id || req.body.clientBundleId;
+    const bundleId = req.params.id || req.body.bundleId;
 
-    const clientBundle = await clientBundleModel.findById(clientBundleId).session(session);
-
-    if (!clientBundle) {
-      throw new ApiError("Client bundle not found", 404);
-    }
-
-    if (clientBundle.client.toString() !== req.user._id.toString()) {
-      throw new ApiError("Unauthorized", 403);
-    }
-
-    if (clientBundle.status !== "PENDING") {
-      throw new ApiError("Already processed", 400);
-    }
-
-    const bundle = await bundleModel.findById(clientBundle.bundle).session(session);
+    const bundle = await bundleModel.findById(bundleId).session(session);
     if (!bundle) {
-      throw new ApiError("Bundle details are missing", 404);
+      throw new ApiError("Bundle not found", 404);
     }
 
     if (bundle.isActive === false) {
@@ -117,18 +103,35 @@ exports.payBundle = async (req, res, next) => {
       throw new ApiError("Wallet not found", 404);
     }
 
-    if (wallet.balance < clientBundle.price) {
+    if (wallet.balance < bundle.price) {
       throw new ApiError("Insufficient balance", 400);
     }
 
-    wallet.balance -= clientBundle.price;
-    wallet.totalSpent = (wallet.totalSpent || 0) + clientBundle.price;
+    wallet.balance -= bundle.price;
+    wallet.totalSpent = (wallet.totalSpent || 0) + bundle.price;
     await wallet.save({ session });
+
+    const purchaseDate = new Date();
+    const clientBundles = await clientBundleModel.create(
+      [
+        {
+          client: req.user._id,
+          bundle: bundle._id,
+          price: bundle.price,
+          status: "ACTIVE",
+          purchaseDate,
+          remainingUses: bundle.sessions || 0,
+          expirationDate: calculateExpirationDate(purchaseDate, bundle.validity),
+        },
+      ],
+      { session }
+    );
+    const clientBundle = clientBundles[0];
 
     const transaction = new Transaction({
       userlog: req.user._id,
       wallet: wallet._id,
-      amount: clientBundle.price,
+      amount: bundle.price,
       type: "payment",
       status: "COMPLETED",
       description: "Bundle payment",
@@ -138,13 +141,6 @@ exports.payBundle = async (req, res, next) => {
 
     wallet.transactions.push(transaction._id);
     await wallet.save({ session });
-
-    clientBundle.status = "ACTIVE";
-    clientBundle.purchaseDate = new Date();
-    clientBundle.remainingUses = bundle.sessions || 0;
-    clientBundle.expirationDate = calculateExpirationDate(clientBundle.purchaseDate, bundle.validity);
-
-    await clientBundle.save({ session });
 
     await session.commitTransaction();
     session.endSession();
@@ -159,6 +155,7 @@ exports.payBundle = async (req, res, next) => {
     next(error);
   }
 };
+
 
 exports.cancelBundle = async (req, res, next) => {
 

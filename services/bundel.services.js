@@ -3,7 +3,7 @@ const requestModel = require("../models/request.model");
 const { ApiError } = require("../Utills/ApiError");
 
 const createBundleService=async (user,data)=>{
-    const {client,caregiver,services,price,discount,bundle_name,bundle_description,features}=data;
+    const {client,caregiver,services,price,discount,bundle_name,bundle_description,features,validity,sessions}=data;
     const bundle=await bundleModel.create({
         client,
         caregiver,
@@ -12,7 +12,9 @@ const createBundleService=async (user,data)=>{
         discount,
         bundle_name,
         bundle_description,
-        features
+        features,
+        validity,
+        sessions
     });
     return bundle;
 }

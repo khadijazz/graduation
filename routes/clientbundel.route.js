@@ -6,7 +6,6 @@ const {permittedTo} =require("../Utills/premittedTo");
 router.use(verifyUser);
 
 
-router.post("/chooseBundle/:bundleId",permittedTo(["client"]),clientBundleController.chooseBundle)
 router.get("/all",clientBundleController.getallbundle);
 
 
