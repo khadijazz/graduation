@@ -4,19 +4,109 @@ const Wallet = require("../models/wallet.model");
 const Transaction = require("../models/transaction.model");
 const clientBundleModel = require("../models/clientbundel.model");
 const bundleModel = require("../models/bundel.model");
+const Booking = require("../models/booking.model");
 
 exports.getWalletBalance = async (req, res) => {
+  try {
+    const wallet = await walletService.getWalletBalance(req.user._id);
 
-  const wallet =
-    await walletService.getWalletBalance(
-      req.user._id
-    );
+    let pendingBalance = 0;
+    if (req.user.role === "caregiver" || wallet.ownerModel === "Caregiver") {
+      const pendingBookings = await Booking.find({
+        caregiver: req.user._id,
+        bookingStatus: { $in: ["ACCEPTED", "CONFIRMED", "IN_PROGRESS"] }
+      });
+      pendingBalance = pendingBookings.reduce((sum, b) => sum + (b.price || 0), 0);
+    } else {
+      pendingBalance = wallet.holdBalance || 0;
+    }
 
-  res.status(200).json({
-    status: "success",
-    message: "Wallet balance fetched successfully",
-    data: wallet
-  });
+    const txns = await Transaction.find({ userlog: req.user._id })
+      .populate("userlog")
+      .populate({
+        path: "booking",
+        populate: [
+          { path: "client" },
+          { path: "caregiver" },
+          {
+            path: "request",
+            populate: { path: "service" }
+          }
+        ]
+      })
+      .populate({
+        path: "bundleUsed",
+        populate: [
+          { path: "client" },
+          { path: "bundle" }
+        ]
+      })
+      .sort({ createdAt: -1 });
+
+    const enrichedTransactions = txns.map(txn => {
+      const plainTxn = txn.toObject ? txn.toObject() : txn;
+      
+      let clientName = "";
+      if (plainTxn.booking && plainTxn.booking.client) {
+        clientName = plainTxn.booking.client.full_name || "";
+      } else if (plainTxn.bundleUsed && plainTxn.bundleUsed.client) {
+        clientName = plainTxn.bundleUsed.client.full_name || "";
+      } else if (plainTxn.userlog && plainTxn.ownerModel === "Userlog") {
+        clientName = plainTxn.userlog.full_name || "";
+      }
+
+      let caregiverName = undefined;
+      if (plainTxn.booking && plainTxn.booking.caregiver) {
+        caregiverName = plainTxn.booking.caregiver.full_name || undefined;
+      } else if (plainTxn.userlog && plainTxn.ownerModel === "Caregiver") {
+        caregiverName = plainTxn.userlog.full_name || undefined;
+      }
+
+      let serviceName = undefined;
+      if (plainTxn.booking && plainTxn.booking.request && plainTxn.booking.request.service) {
+        serviceName = plainTxn.booking.request.service.serviceName || undefined;
+      }
+
+      let bundleName = undefined;
+      if (plainTxn.bundleUsed && plainTxn.bundleUsed.bundle) {
+        bundleName = plainTxn.bundleUsed.bundle.bundle_name || undefined;
+      }
+
+      return {
+        ...plainTxn,
+        transactionId: plainTxn._id,
+        transactionType: plainTxn.type,
+        transactionStatus: plainTxn.status,
+        amount: plainTxn.amount,
+        description: plainTxn.description || "",
+        clientName,
+        caregiverName,
+        serviceName,
+        bundleName,
+        paymentMethod: plainTxn.paymentMethod || "CARD",
+        transactionDate: plainTxn.createdAt
+      };
+    });
+
+    const dashboard = {
+      availableBalance: wallet.balance || 0,
+      totalEarned: wallet.totalEarned || 0,
+      pendingBalance,
+      transactions: enrichedTransactions
+    };
+
+    res.status(200).json({
+      status: "success",
+      message: "Wallet balance fetched successfully",
+      availableBalance: wallet.balance || 0,
+      totalEarned: wallet.totalEarned || 0,
+      pendingBalance,
+      transactions: enrichedTransactions,
+      data: dashboard
+    });
+  } catch (error) {
+    res.status(500).json({ status: "error", message: error.message });
+  }
 };
 
 exports.deposit = async (req, res, next) => {

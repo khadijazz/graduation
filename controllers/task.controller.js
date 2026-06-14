@@ -2,6 +2,9 @@ const taskServices = require("../services/task.services");
 const { ApiError } = require("../Utills/ApiError");
 const Booking = require("../models/booking.model");
 const Task = require("../models/tasks.model");
+const Wallet = require("../models/wallet.model");
+const Transaction = require("../models/transaction.model");
+const mongoose = require("mongoose");
 const { uploadToCloudinary } = require("../Utills/uploadCloudinary");
 const { createNotification } = require("../services/notification.services");
 
@@ -94,8 +97,10 @@ exports.checkIn = async (req, res, next) => {
 };
 
 exports.checkOut = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
-    const booking = await Booking.findById(req.params.bookingId);
+    const booking = await Booking.findById(req.params.bookingId).session(session);
 
     if (!booking) {
       throw new ApiError("Booking not found", 404);
@@ -108,6 +113,13 @@ exports.checkOut = async (req, res, next) => {
       );
     }
 
+    if (booking.bookingStatus === "COMPLETED") {
+      throw new ApiError("Booking is already completed", 400);
+    }
+    if (booking.paymentReleased) {
+      throw new ApiError("Payment has already been released for this booking", 400);
+    }
+
     if (booking.bookingStatus !== "IN_PROGRESS") {
       throw new ApiError(
         "Booking must be checked in first",
@@ -117,10 +129,75 @@ exports.checkOut = async (req, res, next) => {
 
     const checkOutTime = new Date();
 
+    // 1. Retrieve booking amount & deduct from client hold balance
+    const clientWallet = await Wallet.findOne({ userlog: booking.client }).session(session);
+    if (!clientWallet) {
+      throw new ApiError("Client wallet not found", 404);
+    }
+    if ((clientWallet.holdBalance || 0) < booking.price) {
+      throw new ApiError("Insufficient hold balance in client wallet", 400);
+    }
+    clientWallet.holdBalance = (clientWallet.holdBalance || 0) - booking.price;
+    if (clientWallet.holdBalance < 0) {
+      clientWallet.holdBalance = 0;
+    }
+    await clientWallet.save({ session });
+
+    // 2. Mark the held transaction as settled
+    const heldTransaction = await Transaction.findOne({
+      booking: booking._id,
+      type: "BOOKING_PAYMENT",
+      status: "COMPLETED"
+    }).session(session);
+
+    if (heldTransaction) {
+      heldTransaction.isSettled = true;
+      await heldTransaction.save({ session });
+    }
+
+    // 3. Add booking earnings to caregiver's wallet
+    const caregiverWallet = await Wallet.findOne({ userlog: booking.caregiver }).session(session);
+    if (!caregiverWallet) {
+      throw new ApiError("Caregiver wallet not found", 404);
+    }
+    caregiverWallet.balance = (caregiverWallet.balance || 0) + booking.price;
+    caregiverWallet.totalEarned = (caregiverWallet.totalEarned || 0) + booking.price;
+    await caregiverWallet.save({ session });
+
+    // 4. Create caregiver's transaction record
+    const populatedBooking = await Booking.findById(booking._id)
+      .populate({
+        path: "request",
+        populate: { path: "service" }
+      })
+      .session(session);
+
+    const serviceName = populatedBooking?.request?.service?.serviceName || "Care Service";
+
+    const caregiverTransaction = new Transaction({
+      userlog: booking.caregiver,
+      ownerModel: "Caregiver",
+      wallet: caregiverWallet._id,
+      booking: booking._id,
+      client: booking.client,
+      caregiver: booking.caregiver,
+      serviceName: serviceName,
+      amount: booking.price,
+      type: "BOOKING_SETTLEMENT",
+      status: "COMPLETED",
+      paymentMethod: "CARD",
+    });
+    await caregiverTransaction.save({ session });
+
+    caregiverWallet.transactions.push(caregiverTransaction._id);
+    await caregiverWallet.save({ session });
+
+    // 5. Update booking status and payment released status
     booking.bookingStatus = "COMPLETED";
     booking.checkOutTime = checkOutTime;
     booking.isTrackingActive = false;
-    await booking.save();
+    booking.paymentReleased = true;
+    await booking.save({ session });
 
     await createNotification({
       recipientId: booking.client,
@@ -161,8 +238,12 @@ exports.checkOut = async (req, res, next) => {
         taskState: "Completed",
         checkOutTime,
         completedAt: checkOutTime,
-      }
+      },
+      { session }
     );
+
+    await session.commitTransaction();
+    session.endSession();
 
     res.status(200).json({
       success: true,
@@ -175,6 +256,8 @@ exports.checkOut = async (req, res, next) => {
       },
     });
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     next(error);
   }
 };

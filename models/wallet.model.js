@@ -24,6 +24,10 @@ const walletSchema = new mongoose.Schema({
         default: 0,
         alias: "pendingBalance"
     },
+    totalEarned: {
+        type: Number,
+        default: 0
+    },
      totalDeposited: {
     type: Number,
     default: 0,

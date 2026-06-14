@@ -257,6 +257,7 @@ const payBookingFromWallet = async (user, body) => {
   }
 
   wallet.balance -= amount;
+  wallet.holdBalance = (wallet.holdBalance || 0) + amount;
   wallet.totalSpent += amount;
 
   const transaction = await Transaction.create({
