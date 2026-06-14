@@ -15,18 +15,6 @@ const createcaregiver = async (data) => {
 
   const newCaregiver = await caregiver.create(data);
 
-  try {
-    await Wallet.create({
-      userlog: newCaregiver._id,
-      ownerModel: "Caregiver",
-      balance: 0,
-      holdBalance: 0
-    });
-  } catch (err) {
-    await caregiver.findByIdAndDelete(newCaregiver._id);
-    throw err;
-  }
-
   return newCaregiver;
 };
 

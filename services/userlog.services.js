@@ -29,14 +29,29 @@ const createUserLog = async (data) => {
 
   const user = await Userlog.create(data);
 
-  try {
-    await Wallet.create({
+  let wallet = await Wallet.findOne({ userlog: user._id, ownerModel: "Userlog" });
+  let walletCreated = false;
+
+  if (!wallet) {
+    wallet = new Wallet({
       userlog: user._id,
       ownerModel: "Userlog",
       balance: 0,
-      holdBalance: 0
+      holdBalance: 0,
+      totalSpent: 0,
+      transactions: []
     });
+    await wallet.save();
+    walletCreated = true;
+  }
+
+  try {
+    user.wallet = wallet._id;
+    await user.save();
   } catch (err) {
+    if (walletCreated) {
+      await Wallet.findByIdAndDelete(wallet._id);
+    }
     await Userlog.findByIdAndDelete(user._id);
     throw err;
   }

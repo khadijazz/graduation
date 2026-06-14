@@ -5,6 +5,7 @@ const Caregiver = require("../models/caregiver.model");
 const Complaint = require("../models/complaint.model");
 const Request = require("../models/request.model");
 const Userlog = require("../models/userlog.model");
+const Wallet = require("../models/wallet.model");
 const sendEmail = require("../Utills/email");
 const { ApiError } = require("../Utills/ApiError");
 const { createNotification } = require("./notification.services");
@@ -58,8 +59,32 @@ const verifyCaregiver = async (caregiverId) => {
   if (!caregiver)
     throw new ApiError("Caregiver not found", 404);
 
-  caregiver.status = "Verified";
-  await caregiver.save();
+  let wallet = await Wallet.findOne({ userlog: caregiver._id, ownerModel: "Caregiver" });
+  let walletCreated = false;
+
+  if (!wallet) {
+    wallet = new Wallet({
+      userlog: caregiver._id,
+      ownerModel: "Caregiver",
+      balance: 0,
+      holdBalance: 0,
+      totalDeposited: 0,
+      transactions: []
+    });
+    await wallet.save();
+    walletCreated = true;
+  }
+
+  try {
+    caregiver.wallet = wallet._id;
+    caregiver.status = "Verified";
+    await caregiver.save();
+  } catch (err) {
+    if (walletCreated) {
+      await Wallet.findByIdAndDelete(wallet._id);
+    }
+    throw err;
+  }
 
   await createNotification({
     recipientId: caregiver._id,

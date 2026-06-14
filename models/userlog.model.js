@@ -86,7 +86,12 @@ national_id: String,
 
    passwordResetToken: {type: String,default: null},
    passwordResetExpires: {type: Date,default: null},          
-   passwordResetAttempts: {type: Number,default: 0}
+   passwordResetAttempts: {type: Number,default: 0},
+   wallet: {
+     type: mongoose.Schema.Types.ObjectId,
+     ref: "Wallet",
+     default: null
+   }
 
 } , 
 { timestamps: true });

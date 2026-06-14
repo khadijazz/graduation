@@ -99,6 +99,11 @@ phoneNumber:{ type: String, unique: true },
       type: Number
      
     },
+    wallet: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Wallet",
+      default: null
+    }
 
 }, {
   timestamps: true,

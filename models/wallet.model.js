@@ -17,14 +17,17 @@ const walletSchema = new mongoose.Schema({
     balance: {
         type: Number,
         default: 0,
+        alias: "availableBalance"
     },
     holdBalance: {
         type: Number,
-        default: 0
+        default: 0,
+        alias: "pendingBalance"
     },
      totalDeposited: {
     type: Number,
     default: 0,
+    alias: "totalEarned"
   },
 
   totalSpent: {
@@ -41,7 +44,11 @@ const walletSchema = new mongoose.Schema({
         default: Date.now,
     },
    
-} , {timestamps: true})
+} , {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
+})
 
 walletSchema.pre(['find', 'findOne', 'findOneAndUpdate', 'countDocuments', 'updateOne', 'deleteMany', 'deleteOne'], function() {
   this.setQuery(this.model.translateAliases(this.getQuery()));
