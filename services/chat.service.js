@@ -1,175 +1,200 @@
-const ChatSession = require("../models/Chat.model");
+const { ChatSession, Message } = require("../models/Chat.model");
 const { callOpenRouter } = require("./openrouter.service");
+const { ApiError } = require("../Utills/ApiError");
 
+// Max conversation turns to send to OpenRouter (keeps token usage bounded)
+const HISTORY_LIMIT = 20;
 
-const CAREGIVER_SPECIALTIES = [
-  "elderly care",
-  "child care",
-  "pet care",
-  "medical care",
-];
+// ─── Create Session ───────────────────────────────────────────────────────────
 
+/**
+ * Create a new empty chat session for the user.
+ * @param {string} userId
+ * @returns {Promise<{ sessionId: string, title: string, createdAt: Date }>}
+ */
+async function createSession(userId) {
+  const session = await ChatSession.create({
+    user: userId,
+    title: "New Conversation",
+  });
 
-const getOrCreateSession = async (userId, sessionId = null) => {
-  if (sessionId) {
-    const session = await ChatSession.findOne({
-      _id: sessionId,
-      userId,
-    });
-    if (session) return session;
-  }
+  return {
+    sessionId: session._id,
+    title: session.title,
+    createdAt: session.createdAt,
+  };
+}
 
-  let session = await ChatSession.findOne({
-    userId,
-    isActive: true,
-  }).sort({ lastMessageAt: -1 });
+// ─── Send Message ─────────────────────────────────────────────────────────────
 
-  
+/**
+ * Send a user message in a session, call OpenRouter with history, persist both
+ * messages, and return the assistant reply.
+ * @param {string} userId
+ * @param {string} sessionId
+ * @param {string} userMessage
+ * @returns {Promise<{ sessionId: string, message: object }>}
+ */
+async function sendMessage(userId, sessionId, userMessage) {
+  // Verify the session belongs to this user
+  const session = await ChatSession.findOne({ _id: sessionId, user: userId });
   if (!session) {
-    session = await ChatSession.create({
-      userId,
-      messages: [],
-      sessionTitle: "محادثة جديدة",
-    });
+    throw new ApiError("Session not found or access denied.", 404);
   }
 
-  return session;
-};
+  // Load recent conversation history (oldest first, newest last)
+  const historyDocs = await Message.find({ session: sessionId })
+    .sort({ createdAt: 1 })
+    .limit(HISTORY_LIMIT)
+    .lean();
 
-
-const validateSpecialty = (recommendedSpecialty) => {
-  if (!recommendedSpecialty) return null;
-  const normalized = recommendedSpecialty.toLowerCase().trim();
-  return CAREGIVER_SPECIALTIES.includes(normalized) ? normalized : null;
-};
-
-
-const buildConversationHistory = (messages, limit = 10) => {
-  const recent = messages.slice(-limit);
-  return recent.map((msg) => ({
-    role: msg.role,
-    content: msg.content,
+  const conversationHistory = historyDocs.map((m) => ({
+    role: m.role,
+    content: m.content,
   }));
-};
 
+  // Call OpenRouter — history + new user message
+  const assistantReply = await callOpenRouter(conversationHistory, userMessage);
 
-
-const sendMessage = async (userId, userMessage, sessionId = null) => {
-  
-  const session = await getOrCreateSession(userId, sessionId);
-
-  
-  const specialties = CAREGIVER_SPECIALTIES;
-
-  
-  const conversationHistory = buildConversationHistory(session.messages);
-  conversationHistory.push({ role: "user", content: userMessage });
-
-  
-  const aiResponse = await callOpenRouter(conversationHistory, specialties);
-
-  
-  aiResponse.recommendedSpecialty = validateSpecialty(
-    aiResponse.recommendedSpecialty
-  );
-
-  
-  session.messages.push({
+  // Persist user message
+  await Message.create({
+    session: sessionId,
     role: "user",
     content: userMessage,
-    intent: null,
-    structuredResponse: {},
   });
 
-  
-  session.messages.push({
+  // Persist assistant reply
+  const assistantMessage = await Message.create({
+    session: sessionId,
     role: "assistant",
-    content: aiResponse.botMessage,
-    intent: aiResponse.intent,
-    structuredResponse: {
-      botMessage: aiResponse.botMessage,
-      suggestedRequestDescription: aiResponse.suggestedRequestDescription,
-      recommendedSpecialty: aiResponse.recommendedSpecialty,
-      followUpQuestions: aiResponse.followUpQuestions,
-      intent: aiResponse.intent,
-    },
+    content: assistantReply,
   });
 
-  
-  if (session.messages.length <= 2) {
-    session.sessionTitle =
-      userMessage.length > 40
-        ? userMessage.substring(0, 40) + "..."
-        : userMessage;
+  // Auto-title the session from the first user message
+  if (historyDocs.length === 0) {
+    session.title =
+      userMessage.length > 60
+        ? userMessage.substring(0, 60).trim() + "…"
+        : userMessage.trim();
+    await session.save();
   }
-
-  await session.save();
 
   return {
     sessionId: session._id,
-    ...aiResponse,
+    message: {
+      _id: assistantMessage._id,
+      role: assistantMessage.role,
+      content: assistantMessage.content,
+      createdAt: assistantMessage.createdAt,
+    },
   };
-};
+}
 
+// ─── Get Session Messages ─────────────────────────────────────────────────────
 
-const getChatHistory = async (userId, sessionId = null) => {
-  let query = { userId, isActive: true };
-  if (sessionId) query._id = sessionId;
-
-  const session = await ChatSession.findOne(query).sort({ lastMessageAt: -1 });
-
+/**
+ * Retrieve all messages for a session (verifies ownership).
+ * @param {string} userId
+ * @param {string} sessionId
+ * @returns {Promise<{ sessionId: string, title: string, messages: Array }>}
+ */
+async function getSessionMessages(userId, sessionId) {
+  const session = await ChatSession.findOne({ _id: sessionId, user: userId });
   if (!session) {
-    return {
-      sessionId: null,
-      messages: [],
-      sessionTitle: null,
-    };
+    throw new ApiError("Session not found or access denied.", 404);
   }
+
+  const messages = await Message.find({ session: sessionId })
+    .sort({ createdAt: 1 })
+    .lean();
 
   return {
     sessionId: session._id,
-    sessionTitle: session.sessionTitle,
+    title: session.title,
     createdAt: session.createdAt,
-    messages: session.messages.map((msg) => ({
-      role: msg.role,
-      content: msg.content,
-      intent: msg.intent,
-      structuredResponse:
-        msg.role === "assistant" ? msg.structuredResponse : undefined,
-      timestamp: msg.createdAt,
+    messages: messages.map((m) => ({
+      _id: m._id,
+      role: m.role,
+      content: m.content,
+      createdAt: m.createdAt,
     })),
   };
-};
+}
 
+// ─── Get User Sessions ────────────────────────────────────────────────────────
 
-const getUserSessions = async (userId) => {
-  const sessions = await ChatSession.find({ userId, isActive: true })
-    .select("sessionTitle lastMessageAt createdAt messages")
-    .sort({ lastMessageAt: -1 });
+/**
+ * List all chat sessions belonging to the user, with message counts and
+ * the last message preview.
+ * @param {string} userId
+ * @returns {Promise<Array>}
+ */
+async function getUserSessions(userId) {
+  const sessions = await ChatSession.find({ user: userId })
+    .sort({ updatedAt: -1 })
+    .lean();
 
-  return sessions.map((s) => ({
-    sessionId: s._id,
-    sessionTitle: s.sessionTitle,
-    messageCount: s.messages.length,
-    lastMessageAt: s.lastMessageAt,
-    createdAt: s.createdAt,
-  }));
-};
+  if (sessions.length === 0) return [];
 
+  // Batch-fetch message counts and last messages for all sessions
+  const sessionIds = sessions.map((s) => s._id);
 
-const startNewSession = async (userId) => {
-  const session = await ChatSession.create({
-    userId,
-    messages: [],
-    sessionTitle: "محادثة جديدة",
+  const [counts, lastMessages] = await Promise.all([
+    // Count messages per session
+    Message.aggregate([
+      { $match: { session: { $in: sessionIds } } },
+      { $group: { _id: "$session", count: { $sum: 1 } } },
+    ]),
+    // Get the latest message per session
+    Message.aggregate([
+      { $match: { session: { $in: sessionIds } } },
+      { $sort: { createdAt: -1 } },
+      {
+        $group: {
+          _id: "$session",
+          lastContent: { $first: "$content" },
+          lastRole: { $first: "$role" },
+          lastAt: { $first: "$createdAt" },
+        },
+      },
+    ]),
+  ]);
+
+  // Build lookup maps
+  const countMap = Object.fromEntries(counts.map((c) => [c._id.toString(), c.count]));
+  const lastMap = Object.fromEntries(
+    lastMessages.map((l) => [
+      l._id.toString(),
+      { content: l.lastContent, role: l.lastRole, at: l.lastAt },
+    ])
+  );
+
+  return sessions.map((s) => {
+    const id = s._id.toString();
+    const last = lastMap[id];
+    return {
+      sessionId: s._id,
+      title: s.title,
+      messageCount: countMap[id] || 0,
+      lastMessage: last
+        ? {
+            role: last.role,
+            preview:
+              last.content.length > 80
+                ? last.content.substring(0, 80) + "…"
+                : last.content,
+            at: last.at,
+          }
+        : null,
+      createdAt: s.createdAt,
+      updatedAt: s.updatedAt,
+    };
   });
-
-  return { sessionId: session._id };
-};
+}
 
 module.exports = {
+  createSession,
   sendMessage,
-  getChatHistory,
+  getSessionMessages,
   getUserSessions,
-  startNewSession,
 };
