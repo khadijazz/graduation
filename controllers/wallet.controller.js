@@ -182,15 +182,26 @@ exports.refund = async (req, res, next) => {
 
 };
 
-exports.getWalletById = async (req, res, next) => {
-  const wallet = await Wallet.findById(req.params.id);
+exports.getMyWallet = async (req, res, next) => {
+  const model =
+    req.user.role === "caregiver"
+      ? "Caregiver"
+      : "Userlog";
+
+  const wallet = await Wallet.findOne({
+    userlog: req.user._id,
+    ownerModel: model
+  });
+
   if (!wallet) {
-    return res.status(404).json({ message: "Wallet not found" });
+    return res.status(404).json({
+      message: "Wallet not found"
+    });
   }
+
   res.status(200).json({
     status: "success",
-    message: "Wallet fetched successfully",
-    data: wallet,
+    data: wallet
   });
 };
 

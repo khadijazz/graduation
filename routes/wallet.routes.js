@@ -8,8 +8,10 @@ router.use(verifyUser);
 router.route("/")
 .get(permittedTo(["client","caregiver"]),walletController.getWalletBalance)
 
+router.get("/my-wallet", permittedTo(["client", "caregiver"]), walletController.getMyWallet);
+
+
 router.route("/:id")
-.get(permittedTo(["client","caregiver","admin"]),walletController.getWalletById)
 .patch(permittedTo(["client","caregiver"]),walletController.updateWallet)
 .delete(permittedTo(["client","caregiver","admin"]),walletController.deleteWallet);
 
