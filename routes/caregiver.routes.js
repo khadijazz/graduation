@@ -18,7 +18,8 @@ router.route('/:id')
 router.post('/signup',upload.fields([
     { name: "profile_picture", maxCount: 1 },
     { name: "certifications", maxCount: 5 },
-    { name: "verifcation_documents", maxCount: 5 }
+    { name: "verifcation_documents", maxCount: 5 },
+    { name: "mental_health_certificate", maxCount: 1 }
   ]),controller.newCaregiver)
 
 

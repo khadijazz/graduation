@@ -54,7 +54,7 @@ phoneNumber:{ type: String, unique: true },
     default: true
   },
 
-  speciality:{type:String, enum:["elderly care","child care","pet care","medical care"]},
+  speciality:{type:String, enum:["elderly care","child care","pet care","medical care","shopping assistant","nursing assistant "]},
 
   price: { type: Number },
   availability: { type: String },
@@ -62,6 +62,7 @@ phoneNumber:{ type: String, unique: true },
   profile_picture: { type: String },
     certifications: [{ type: String }],
     verifcation_documents: { type: [String], select: false },
+    mental_health_certificate: { type: String },
     status: {
       type: String,
       enum: ["Pending Approval", "Verified", "Declined"],
