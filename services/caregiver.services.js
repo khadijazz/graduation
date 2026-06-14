@@ -1,6 +1,7 @@
 const caregiver=require("../models/caregiver.model");
 const userlog=require("../models/userlog.model");
 const Wallet=require("../models/wallet.model");
+const Booking=require("../models/booking.model");
 const {ApiFeature}=require("../Utills/ApiFeature.js");
 const {ApiError}=require("../Utills/ApiError.js");
 
@@ -29,32 +30,33 @@ const createcaregiver = async (data) => {
   return newCaregiver;
 };
 
-const getallcaregiver = (queryParams) =>{
-    const apiFeature=new ApiFeature(caregiver.find({}),queryParams);
+const getallcaregiver = async (queryParams) => {
+    const apiFeature = new ApiFeature(
+        caregiver.find({ status: "Verified" })
+            .select("full_name email createdAt status"),
+        queryParams
+    );
+
     apiFeature.paginate();
     apiFeature.sort();
     apiFeature.projection();
-    return apiFeature.dbQuery;
+
+    const caregivers = await apiFeature.dbQuery;
+
+    return Promise.all(
+        caregivers.map(async (cg) => ({
+            ...cg.toObject(),
+            bookingsCount: await Booking.countDocuments({
+                caregiver: cg._id
+            })
+        }))
+    );
 };
 const getcaregiverbyid=(id)=>caregiver.findById(id);
 const updatecaregiver=(id,updates)=>caregiver.findByIdAndUpdate(id,updates,{new:true,runValidators:true});
 const deletecaregiver=(id)=>caregiver.findByIdAndDelete(id);
 const deleteAllCaregivers = () => caregiver.deleteMany();
 
-const bcrypt = require("bcryptjs");
-const checkCaregiverStatus = async (email, password) => {
-  const caregiverDoc = await caregiver.findOne({ email }).select("+password");
-  if (!caregiverDoc) {
-    throw new ApiError("no caregiver found with this email", 400);
-  }
-  const isCorrect = await bcrypt.compare(password, caregiverDoc.password);
-  if (!isCorrect) {
-    throw new ApiError("email or password is wrong", 400);
-  }
-  if (caregiverDoc.isBlocked) {
-    throw new ApiError("Your account has been blocked. Please contact support.", 403);
-  }
-  return caregiverDoc.status;
-};
 
-module.exports={createcaregiver,getallcaregiver,getcaregiverbyid,updatecaregiver,deletecaregiver,deleteAllCaregivers,checkCaregiverStatus}
+
+module.exports={createcaregiver,getallcaregiver,getcaregiverbyid,updatecaregiver,deletecaregiver,deleteAllCaregivers}

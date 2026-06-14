@@ -152,9 +152,33 @@ If you did not request this, please ignore this email.
 };
  
 
+const getAllUsers = async () => {
+    const users = await Userlog.aggregate([
+        {
+            $match: {
+                role: "client"
+            }
+        },
+        {
+            $lookup: {
+                from: "booking",
+                localField: "_id",
+                foreignField: "client",
+                as: "booking"
+            }
+        },
+        {
+            $project: {
+                full_name: 1,
+                email: 1,
+                createdAt: 1,
+                bookingsCount: { $size: "$booking" }
+            }
+        }
+    ]);
 
-
-
+    return users;
+};
 const resetPassword = async (plainToken, newPassword, passwordConfirmation) => {
   
   const hashedToken = crypto
@@ -273,6 +297,7 @@ const deleteUserLog = async (userId) => {
 
 module.exports ={
     createUserLog,
+    getAllUsers,
     updatePassword,
     loginUser,
     getUserById,

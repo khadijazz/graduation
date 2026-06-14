@@ -43,6 +43,15 @@ exports.loginUser = async (req, res, next) => {
   });
 };
 
+exports.getallusers=async(req,res,next)=>{
+  const users = await userlogServices.getAllUsers();
+  res.status(200).json({
+    total:users.length,
+    status: "success",
+    data: users
+  });
+}
+
 exports.finduserlogbyid=async(req,res,next)=>{
   const userlog = await userlogServices.getUserById(req.params.id);
   userlog.password=undefined;

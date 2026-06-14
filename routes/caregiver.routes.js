@@ -8,8 +8,8 @@ const {permittedTo} =require("../Utills/premittedTo");
 
 
 router.route('/')
-.get(controller.getallcaregiver)
-.delete(controller.deleteallCareGivers)
+.get(verifyUser, permittedTo(["admin"]),controller.getallcaregiver)
+
 
 router.route('/:id')
 .get(controller.getCareGiver)
@@ -21,7 +21,6 @@ router.post('/signup',upload.fields([
     { name: "verifcation_documents", maxCount: 5 }
   ]),controller.newCaregiver)
 
-router.post('/check-status', controller.checkStatus);
 
 module.exports=router;
 

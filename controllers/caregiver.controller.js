@@ -90,7 +90,7 @@ exports.getallcaregiver = async (req, res, next) => {
 
     res.status(200).json({
         status: "success",
-        length: caregivers.length,
+        total: caregivers.length,
         data: {
             caregivers
         }
@@ -185,17 +185,3 @@ exports.updatePassword = async (req, res, next) => {
   });
 };
 
-exports.checkStatus = async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    throw new ApiError("Email and password are required", 400);
-  }
-  const status = await caregiverServices.checkCaregiverStatus(email, password);
-  res.status(200).json({
-    status: "success",
-    data: {
-      status
-    }
-  });
-};
- 

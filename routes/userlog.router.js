@@ -15,6 +15,7 @@ router.post('/forgotpassword', userlogcontroller.forgotPassword);
 router.patch('/resetpassword/:token', userlogcontroller.resetPassword);
 router.patch('/updatepassword', verifyUser, userlogcontroller.updatePassword);
 router.delete('/delete_me', verifyUser, permittedTo(["client"]),userlogcontroller.deleteuserlog);
+router.get('/allusers',verifyUser, permittedTo(["admin"]),userlogcontroller.getallusers);
 router.get('/:id', userlogcontroller.finduserlogbyid);
 
 module.exports = router;
