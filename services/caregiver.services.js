@@ -33,7 +33,7 @@ const createcaregiver = async (data) => {
 const getallcaregiver = async (queryParams) => {
     const apiFeature = new ApiFeature(
         caregiver.find({ status: "Verified" })
-            .select("full_name email createdAt status"),
+            .select("full_name email createdAt status speciality"),
         queryParams
     );
 

@@ -54,7 +54,7 @@ phoneNumber:{ type: String, unique: true },
     default: true
   },
 
-  speciality:{type:String, enum:["elderly care","child care","pet care","shopping assistant","nursing assistant "]},
+  speciality:{type:String, enum:["elderly care","child care","pet care","shopping assistant","nursing assistant","plant care"]},
 
   price: { type: Number },
   availability: { type: String },
