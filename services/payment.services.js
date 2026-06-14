@@ -65,7 +65,7 @@ async function createPaymentKey(
   return response.data.token;
 }
 
-exports.createWalletTopup = async (user, body) => {
+const createWalletTopup = async (user, body) => {
   const { amount } = body;
 
   if (!amount || amount <= 0) {
@@ -124,7 +124,7 @@ exports.createWalletTopup = async (user, body) => {
   };
 };
 
-exports.handlePaymobCallback = async (body, query) => {
+const handlePaymobCallback = async (body, query) => {
   console.log("========== PAYMOB CALLBACK ==========");
   console.log("BODY:", JSON.stringify(body, null, 2));
   console.log("QUERY:", JSON.stringify(query, null, 2));
@@ -227,7 +227,7 @@ exports.handlePaymobCallback = async (body, query) => {
   };
 };
 
-exports.payBookingFromWallet = async (user, body) => {
+const payBookingFromWallet = async (user, body) => {
   const { bookingId, amount } = body;
 
   if (!bookingId) {
@@ -310,4 +310,20 @@ exports.payBookingFromWallet = async (user, body) => {
     },
   };
 };
-// last edit
+
+const handlePaymobRedirect = async (req, res) => {
+  const { success } = req.query;
+
+  if (success === "true") {
+    return res.redirect("ehtmam://payment/success");
+  }
+
+  return res.redirect("ehtmam://payment/failed");
+};
+
+module.exports = {
+  createWalletTopup,
+  handlePaymobCallback,
+  payBookingFromWallet,
+  handlePaymobRedirect
+};

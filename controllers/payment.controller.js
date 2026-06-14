@@ -26,3 +26,10 @@ exports.payBookingFromWallet = async (req, res, next) => {
     next(error);
   }
 };
+exports.paymobRedirect = async (req, res, next) => {
+  try {
+    await paymentService.handlePaymobRedirect(req, res);
+  } catch (error) {
+    next(error);
+  }
+};
