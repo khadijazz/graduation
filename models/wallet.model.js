@@ -6,7 +6,7 @@ const walletSchema = new mongoose.Schema({
         refPath: "ownerModel",
         required: true,
         unique: true,
-        alias: "user"
+      
     },
     ownerModel: {
         type: String,
@@ -17,12 +17,12 @@ const walletSchema = new mongoose.Schema({
     balance: {
         type: Number,
         default: 0,
-        alias: "availableBalance"
+     
     },
     holdBalance: {
         type: Number,
         default: 0,
-        alias: "pendingBalance"
+        
     },
     totalEarned: {
         type: Number,
@@ -31,7 +31,7 @@ const walletSchema = new mongoose.Schema({
      totalDeposited: {
     type: Number,
     default: 0,
-    alias: "totalEarned"
+   
   },
 
   totalSpent: {
@@ -50,8 +50,7 @@ const walletSchema = new mongoose.Schema({
    
 } , {
     timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
+  
 })
 
 walletSchema.pre(['find', 'findOne', 'findOneAndUpdate', 'countDocuments', 'updateOne', 'deleteMany', 'deleteOne'], function() {
