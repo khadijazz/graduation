@@ -1,8 +1,6 @@
 const mongoose = require("mongoose");
 
-
 const bookingSchema = new mongoose.Schema({
-
   request: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Request",
@@ -32,18 +30,18 @@ const bookingSchema = new mongoose.Schema({
     required: true,
   },
 
- bookingStatus: {
-  type: String,
-  enum: [
-    "PENDING",
-    "ACCEPTED",
-    "CONFIRMED",
-    "IN_PROGRESS",
-    "COMPLETED",
-    "CANCELLED"
-  ],
-  default: "PENDING"
-},
+  bookingStatus: {
+    type: String,
+    enum: [
+      "PENDING",
+      "ACCEPTED",
+      "CONFIRMED",
+      "IN_PROGRESS",
+      "COMPLETED",
+      "CANCELLED"
+    ],
+    default: "PENDING"
+  },
 
   originalPrice: {
     type: Number,
@@ -68,7 +66,10 @@ const bookingSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-
+  paymentReleased: {
+    type: Boolean,
+    default: false,
+  },
 }, { timestamps: true });
 
-module.exports = mongoose.model("Booking", bookingSchema)
+module.exports = mongoose.model("Booking", bookingSchema);

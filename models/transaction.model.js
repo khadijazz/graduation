@@ -24,6 +24,25 @@ const transactionSchema = new mongoose.Schema({
     ref: "Booking",
   },
 
+  client: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Userlog",
+  },
+
+  caregiver: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Caregiver",
+  },
+
+  serviceName: {
+    type: String,
+  },
+
+  isSettled: {
+    type: Boolean,
+    default: false,
+  },
+
   amount: {
     type: Number,
     required: true,
