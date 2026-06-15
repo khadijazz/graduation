@@ -1,13 +1,13 @@
-const servicesServices=require("../services/services.services");
-const {ApiError}=require("../Utills/ApiError");
+const servicesServices = require("../services/services.services");
+const { ApiError } = require("../Utills/ApiError");
 
-exports.createService=async (req,res,next)=>{
-const Data=req.body;
-const service=await servicesServices.createService(Data);
-res.status(201).json({
-    status:"success",
-    data:service
-})
+exports.createService = async (req, res, next) => {
+    const Data = req.body;
+    const service = await servicesServices.createService(Data);
+    res.status(201).json({
+        status: "success",
+        data: service
+    })
 }
 
 exports.getAllServices=async (req,res,next)=>{

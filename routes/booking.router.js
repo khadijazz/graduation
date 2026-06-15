@@ -14,8 +14,6 @@ router.route("/")
 router.route("/confirmbookingandpay/:id")
     .patch(permittedTo(["client"]), bookingController.confirmBookingAndPay);
 
-router.route("/process-payment")
-    .post(permittedTo(["client"]), bookingController.processPaymentAndConfirmBooking);
 
 router.route("/process-payment/:offerId")
     .post(permittedTo(["client"]), bookingController.processPaymentAndConfirmBooking);
