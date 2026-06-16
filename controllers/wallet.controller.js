@@ -183,27 +183,36 @@ exports.refund = async (req, res, next) => {
 };
 
 exports.getMyWallet = async (req, res, next) => {
-  const model =
-    req.user.role === "caregiver"
-      ? "Caregiver"
-      : "Userlog";
+const model =
+req.user.role === "caregiver"
+? "Caregiver"
+: "Userlog";
 
-  const wallet = await Wallet.findOne({
-    userlog: req.user._id,
-    ownerModel: model
-  });
+const wallet = await Wallet.findOne({
+userlog: req.user._id,
+ownerModel: model,
+}).populate({
+path: "transactions",
+populate: [
+{
+path: "client",
+select: "full_name",
+}
+],
+});
 
-  if (!wallet) {
-    return res.status(404).json({
-      message: "Wallet not found"
-    });
-  }
+if (!wallet) {
+return res.status(404).json({
+message: "Wallet not found",
+});
+}
 
-  res.status(200).json({
-    status: "success",
-    data: wallet
-  });
+res.status(200).json({
+status: "success",
+data: wallet,
+});
 };
+
 
 exports.updateWallet = async (req, res, next) => {
   const wallet = await Wallet.findByIdAndUpdate(req.params.id, req.body, { new: true });
