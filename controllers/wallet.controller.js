@@ -214,28 +214,7 @@ data: wallet,
 };
 
 
-exports.updateWallet = async (req, res, next) => {
-  const wallet = await Wallet.findByIdAndUpdate(req.params.id, req.body, { new: true });
-  if (!wallet) {
-    return res.status(404).json({ message: "Wallet not found" });
-  }
-  res.status(200).json({
-    status: "success",
-    message: "Wallet updated successfully",
-    data: wallet,
-  });
-};
 
-exports.deleteWallet = async (req, res, next) => {
-  const wallet = await Wallet.findByIdAndDelete(req.params.id);
-  if (!wallet) {
-    return res.status(404).json({ message: "Wallet not found" });
-  }
-  res.status(200).json({
-    status: "success",
-    message: "Wallet deleted successfully",
-    data: wallet,
-  });
-};
+
 
 

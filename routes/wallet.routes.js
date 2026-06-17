@@ -11,8 +11,4 @@ router.route("/")
 router.get("/my-wallet", permittedTo(["client", "caregiver"]), walletController.getMyWallet);
 
 
-router.route("/:id")
-.patch(permittedTo(["client","caregiver"]),walletController.updateWallet)
-.delete(permittedTo(["client","caregiver","admin"]),walletController.deleteWallet);
-
 module.exports=router;

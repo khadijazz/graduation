@@ -6,6 +6,11 @@ const complaintSchema = new mongoose.Schema({
     ref: "Userlog",
     required: true,
   },
+    booking: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Booking",
+    required: true,
+  },
   subject: {
     type: String,
     required: true,
