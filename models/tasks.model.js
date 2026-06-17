@@ -25,13 +25,36 @@ const tasksSchema = mongoose.Schema({
 
     taskDescription: {
         type: String,
-        required: true,
         trim: true,
+    },
+    title: {
+        type: String,
+        trim: true,
+    },
+    price: {
+        type: Number,
+        default: 0,
+    },
+    description: {
+        type: String,
+        trim: true,
+    },
+    createdBy: {
+        type: String,
+        enum: ["client", "caregiver"],
+        default: "client",
+    },
+    booking: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Booking",
     },
     taskState: {
         type: String,
         trim: true,
-        enum: ["Pending", "In Progress", "Completed", "pending", "in-progress", "completed"],
+        enum: [
+            "Pending", "In Progress", "Completed", "pending", "in-progress", "completed",
+            "Pending Client Approval", "Approved", "Rejected"
+        ],
         default: "Pending",
     },
     proofType: {

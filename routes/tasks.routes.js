@@ -26,6 +26,15 @@ router.route("/upload-proof/:id")
     taskController.uploadProof
   );
 
+router.route("/booking/:bookingId")
+    .post(permittedTo(["caregiver"]), taskController.addExtraTask);
+
+router.route("/:id/approve")
+    .patch(permittedTo(["client"]), taskController.approveExtraTask);
+
+router.route("/:id/reject")
+    .patch(permittedTo(["client"]), taskController.rejectExtraTask);
+
 router.route("/:id")
     .post(permittedTo(["client"]), taskController.createTasks)
     .get(permittedTo(["caregiver", "client"]), taskController.getTaskById)

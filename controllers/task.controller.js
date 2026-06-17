@@ -143,17 +143,16 @@ exports.checkOut = async (req, res, next) => {
     }
     await clientWallet.save({ session });
 
-    // 2. Mark the held transaction as settled
-    const heldTransaction = await Transaction.findOne({
-      booking: booking._id,
-      type: "BOOKING_PAYMENT",
-      status: "COMPLETED"
-    }).session(session);
-
-    if (heldTransaction) {
-      heldTransaction.isSettled = true;
-      await heldTransaction.save({ session });
-    }
+    // 2. Mark the held transactions as settled
+    await Transaction.updateMany(
+      {
+        booking: booking._id,
+        type: { $in: ["BOOKING_PAYMENT", "EXTRA_TASK_PAYMENT"] },
+        status: "COMPLETED"
+      },
+      { isSettled: true },
+      { session }
+    );
 
     // 3. Add booking earnings to caregiver's wallet
     const caregiverWallet = await Wallet.findOne({ userlog: booking.caregiver }).session(session);
@@ -233,6 +232,10 @@ exports.checkOut = async (req, res, next) => {
       {
         request: booking.request,
         taskState: { $ne: "Completed" },
+        $or: [
+          { createdBy: { $ne: "caregiver" } },
+          { createdBy: "caregiver", taskState: "Approved" }
+        ]
       },
       {
         taskState: "Completed",
@@ -267,6 +270,10 @@ exports.uploadProof = async (req, res, next) => {
     const task = await taskServices.gettasksbyid(req.params.id);
     if (!task) {
       throw new ApiError("Task not found", 404);
+    }
+
+    if (task.createdBy === "caregiver" && (task.taskState === "Pending Client Approval" || task.taskState === "Rejected")) {
+      throw new ApiError("Proof cannot be uploaded for a task that is not approved", 400);
     }
 
     const booking = await Booking.findOne({ request: task.request });
@@ -339,16 +346,29 @@ exports.getTaskById = async (req, res, next) => {
 };
 
 exports.updateTask = async (req, res, next) => {
-  const updates = { ...req.body };
-  if (updates.taskState && updates.taskState.toLowerCase() === "completed") {
-    updates.completedAt = new Date();
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) {
+      throw new ApiError("task not found", 404);
+    }
+
+    const updates = { ...req.body };
+    if (updates.taskState && updates.taskState.toLowerCase() === "completed") {
+      if (task.createdBy === "caregiver" && (task.taskState === "Pending Client Approval" || task.taskState === "Rejected")) {
+        throw new ApiError("Only approved tasks can be completed", 400);
+      }
+      updates.completedAt = new Date();
+    }
+
+    const updatedTask = await taskServices.updatetasks(req.params.id, updates);
+    res.status(200).json({
+      message: "task updated successfully",
+      status: "success",
+      data: updatedTask
+    });
+  } catch (error) {
+    next(error);
   }
-  const Task = await taskServices.updatetasks(req.params.id, updates);
-  res.status(200).json({
-    message: "task updated successfully",
-    status: "success",
-    data: Task
-  })
 };
 
 exports.deleteTask = async (req, res, next) => {
@@ -366,5 +386,237 @@ exports.deleteAllTasks = async (req, res, next) => {
     status: "success",
     data: Task
   })
+};
+
+exports.addExtraTask = async (req, res, next) => {
+  try {
+    const { bookingId } = req.params;
+    const { title, price, description } = req.body;
+
+    if (!title || typeof title !== "string" || !title.trim()) {
+      throw new ApiError("Task Title is required", 400);
+    }
+    if (price === undefined || typeof price !== "number" || price <= 0) {
+      throw new ApiError("Task Price must be a positive number", 400);
+    }
+
+    const booking = await Booking.findById(bookingId);
+    if (!booking) {
+      throw new ApiError("Booking not found", 404);
+    }
+
+    // Security: Only assigned caregiver can add tasks
+    if (booking.caregiver.toString() !== req.user._id.toString()) {
+      throw new ApiError("Unauthorized: Only assigned caregiver can add tasks", 403);
+    }
+
+    // Edge Case: Caregiver adds task after booking completion
+    if (booking.bookingStatus === "COMPLETED") {
+      throw new ApiError("Cannot add tasks after booking has been completed", 400);
+    }
+    if (booking.bookingStatus === "CANCELLED") {
+      throw new ApiError("Cannot add tasks to a cancelled booking", 400);
+    }
+
+    // Edge Case: Duplicate task creation
+    const existingTask = await Task.findOne({
+      request: booking.request,
+      $or: [
+        { title: title.trim() },
+        { taskDescription: title.trim() }
+      ]
+    });
+    if (existingTask) {
+      throw new ApiError("A task with this title already exists for this booking", 400);
+    }
+
+    const task = new Task({
+      request: booking.request,
+      booking: booking._id,
+      taskDescription: title.trim(),
+      title: title.trim(),
+      price,
+      description: description ? description.trim() : undefined,
+      createdBy: "caregiver",
+      taskState: "Pending Client Approval"
+    });
+
+    await task.save();
+
+    // Notify client
+    await createNotification({
+      recipientId: booking.client,
+      recipientRole: "client",
+      notificationType: "EXTRA_TASK_REQUESTED",
+      title: "Additional task requested",
+      message: "A caregiver has requested approval for an additional task.",
+      relatedEntityId: task._id,
+      relatedEntityType: "tasks"
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Extra task added successfully",
+      data: task
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.approveExtraTask = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const task = await Task.findById(req.params.id).session(session);
+    if (!task) {
+      throw new ApiError("Task not found", 404);
+    }
+    if (task.createdBy !== "caregiver") {
+      throw new ApiError("Only caregiver-added tasks require approval", 400);
+    }
+
+    // Prevent duplicate approvals / rejections
+    if (task.taskState === "Approved" || task.taskState === "Completed") {
+      throw new ApiError("Task is already approved", 400);
+    }
+    if (task.taskState === "Rejected") {
+      throw new ApiError("Task is already rejected", 400);
+    }
+
+    const booking = await Booking.findById(task.booking).session(session);
+    if (!booking) {
+      throw new ApiError("Booking not found", 404);
+    }
+
+    // Edge Case: Booking cancelled/completed before approval
+    if (booking.bookingStatus === "CANCELLED") {
+      throw new ApiError("Booking has been cancelled", 400);
+    }
+    if (booking.bookingStatus === "COMPLETED") {
+      throw new ApiError("Booking is already completed", 400);
+    }
+
+    // Security: Only booking owner can approve or reject tasks
+    if (booking.client.toString() !== req.user._id.toString()) {
+      throw new ApiError("Unauthorized: Only booking owner can approve tasks", 403);
+    }
+
+    // Wallet balance check and deduction
+    const wallet = await Wallet.findOne({ userlog: booking.client }).session(session);
+    if (!wallet) {
+      throw new ApiError("Client wallet not found", 404);
+    }
+    if (wallet.balance < task.price) {
+      throw new ApiError("Insufficient wallet balance", 400);
+    }
+
+    // Deduct and move to Hold Balance
+    wallet.balance -= task.price;
+    wallet.holdBalance = (wallet.holdBalance || 0) + task.price;
+    wallet.totalSpent = (wallet.totalSpent || 0) + task.price;
+    wallet.lastTransactionAt = new Date();
+
+    const transaction = new Transaction({
+      userlog: booking.client,
+      wallet: wallet._id,
+      booking: booking._id,
+      amount: task.price,
+      type: "EXTRA_TASK_PAYMENT",
+      status: "COMPLETED",
+      paymentMethod: "CARD",
+    });
+    await transaction.save({ session });
+    wallet.transactions.push(transaction._id);
+    await wallet.save({ session });
+
+    // Increase booking total amount
+    booking.price = (booking.price || 0) + task.price;
+    if (booking.finalPrice !== undefined) {
+      booking.finalPrice = (booking.finalPrice || 0) + task.price;
+    }
+    await booking.save({ session });
+
+    // Approve the task
+    task.taskState = "Approved";
+    await task.save({ session });
+
+    // Notify Caregiver
+    await createNotification({
+      recipientId: booking.caregiver,
+      recipientRole: "caregiver",
+      notificationType: "EXTRA_TASK_APPROVED",
+      title: "Additional task approved",
+      message: "Additional task approved successfully.",
+      relatedEntityId: task._id,
+      relatedEntityType: "tasks"
+    });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({
+      success: true,
+      message: "Additional task approved successfully",
+      data: task
+    });
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    next(error);
+  }
+};
+
+exports.rejectExtraTask = async (req, res, next) => {
+  try {
+    const task = await Task.findById(req.params.id);
+    if (!task) {
+      throw new ApiError("Task not found", 404);
+    }
+    if (task.createdBy !== "caregiver") {
+      throw new ApiError("Only caregiver-added tasks require rejection", 400);
+    }
+
+    // Prevent duplicate approvals / rejections
+    if (task.taskState === "Approved" || task.taskState === "Completed") {
+      throw new ApiError("Task is already approved", 400);
+    }
+    if (task.taskState === "Rejected") {
+      throw new ApiError("Task is already rejected", 400);
+    }
+
+    const booking = await Booking.findById(task.booking);
+    if (!booking) {
+      throw new ApiError("Booking not found", 404);
+    }
+
+    // Security: Only booking owner can approve or reject tasks
+    if (booking.client.toString() !== req.user._id.toString()) {
+      throw new ApiError("Unauthorized: Only booking owner can reject tasks", 403);
+    }
+
+    // Reject the task
+    task.taskState = "Rejected";
+    await task.save();
+
+    // Notify Caregiver
+    await createNotification({
+      recipientId: booking.caregiver,
+      recipientRole: "caregiver",
+      notificationType: "EXTRA_TASK_REJECTED",
+      title: "Additional task rejected",
+      message: "Additional task was rejected by the client.",
+      relatedEntityId: task._id,
+      relatedEntityType: "tasks"
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Additional task rejected successfully",
+      data: task
+    });
+  } catch (error) {
+    next(error);
+  }
 };
 

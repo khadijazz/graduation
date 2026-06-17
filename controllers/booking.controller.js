@@ -115,6 +115,10 @@ exports.getBookingTasks = async (req, res, next) => {
       checkInTime: task.checkInTime || null,
       checkOutTime: task.checkOutTime || null,
       proofFiles: task.proofFiles || [],
+      createdBy: task.createdBy || "client",
+      title: task.title || task.taskDescription,
+      price: task.price || 0,
+      description: task.description || "",
       // Keep old model values for backward compatibility
       _id: task._id,
       taskDescription: task.taskDescription,
@@ -175,6 +179,20 @@ exports.getBookingProgress = async (req, res, next) => {
 
     tasks.forEach(task => {
       const isCompleted = task.taskState && task.taskState.toLowerCase() === "completed";
+      const taskDetails = {
+        taskId: task._id,
+        taskName: task.taskDescription,
+        title: task.title || task.taskDescription,
+        price: task.price || 0,
+        description: task.description || "",
+        createdBy: task.createdBy || "client",
+        caregiverName: booking.caregiver ? booking.caregiver.full_name : "N/A",
+        creationTime: task.createdAt,
+        status: task.taskState,
+        taskStatus: task.taskState,
+        proofFiles: task.proofFiles || []
+      };
+
       if (isCompleted) {
         const completionTime = task.completedAt || task.checkOutTime ||
           (task.proofFiles && task.proofFiles.length > 0 ? task.proofFiles[task.proofFiles.length - 1].uploadDate : null) ||
@@ -183,9 +201,7 @@ exports.getBookingProgress = async (req, res, next) => {
         const mediaUrls = (task.proofFiles || []).map(f => f.url);
         
         completedTasks.push({
-          taskId: task._id,
-          taskName: task.taskDescription,
-          status: task.taskState,
+          ...taskDetails,
           completionTime,
           completionTimestamp: completionTime,
           completedAt: completionTime,
@@ -196,9 +212,7 @@ exports.getBookingProgress = async (req, res, next) => {
         });
       } else {
         pendingTasks.push({
-          taskId: task._id,
-          taskName: task.taskDescription,
-          status: task.taskState,
+          ...taskDetails,
           pendingMessage: "Task is pending completion by caregiver",
           message: "Task is pending completion by caregiver"
         });
@@ -222,7 +236,14 @@ exports.getBookingProgress = async (req, res, next) => {
       }
     });
 
-    const totalTasks = tasks.length;
+    const progressTasks = tasks.filter(task => {
+      if (task.createdBy === "caregiver") {
+        return task.taskState === "Approved" || task.taskState === "Completed";
+      }
+      return true;
+    });
+
+    const totalTasks = progressTasks.length;
     const completedCount = completedTasks.length;
     const progressPercent = totalTasks === 0 ? 0 : Math.round((completedCount / totalTasks) * 100);
 
