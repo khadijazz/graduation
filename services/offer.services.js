@@ -61,7 +61,7 @@ const getOffers = async (requestId, userId) => {
     .find({ request: requestId })
     .populate(
       "caregiver",
-      "full_name profile_picture speciality experience governorate price"
+      "full_name profile_picture speciality governorate price reviews email phoneNumber"
     )
     .sort({ createdAt: -1 });
 };
