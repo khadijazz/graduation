@@ -14,22 +14,16 @@ exports.createReview = async (req, res, next) => {
     });
 };
 
-exports.getCaregiverReviews = async (req, res, next) => {
-    const result = await reviewService.getCaregiverReviewsService(req);
-    res.status(200).json({
-        status: "success",
-        data: result,
-    });
-};
+
 
 exports.getMyReviews = async (req, res, next) => {
-    const reviews = await Review.find({ client: req.user._id })
-      .populate("caregiver", "full_name");
+  const data =
+    await reviewService.getMyReviewsService(req);
 
-    res.status(200).json({
-      status: "success",
-      data: reviews,
-    });
+  res.status(200).json({
+    status: "success",
+    data,
+  });
 };
 
 exports.getAllReviews = async (req, res, next) => {

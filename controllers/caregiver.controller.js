@@ -38,6 +38,10 @@ exports.newCaregiver = async (req, res) => {
         req.files.mental_health_certificate[0]
       );
   }
+  if (req.files?.national_id) {
+  caregiverData.national_id =
+    await uploadToCloudinary(req.files.national_id[0]);
+}
 
   const caregiver = await caregiverServices.createcaregiver(
     caregiverData

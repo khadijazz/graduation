@@ -8,7 +8,8 @@ router.use(verifyUser);
 router.post("/create_review/:bookingId", permittedTo(["client","caregiver"]), reviewController.createReview)
 router.get("/getAllReviews",permittedTo(["admin"]), reviewController.getAllReviews);
 
-router.get("/caregiver/:caregiverId", permittedTo(["client", "caregiver", "admin"]), reviewController.getCaregiverReviews);
+
+router.get("/my-reviews",permittedTo(["caregiver","client"]), reviewController.getMyReviews);
 
 
 router.get("/:id",permittedTo(["client","caregiver","admin"]),reviewController.getReviewById)

@@ -33,6 +33,7 @@ const caregiverSchema = new mongoose.Schema({
     }, 
   role: { type: String ,default:"caregiver"},
 
+
 phoneNumber:{ type: String, unique: true }, 
 
   governorate: {
@@ -60,6 +61,7 @@ phoneNumber:{ type: String, unique: true },
   availability: { type: String },
   experience: { type: String },
   profile_picture: { type: String },
+ national_id: {type: String},
     certifications: [{ type: String }],
     verifcation_documents: { type: [String], select: false },
     mental_health_certificate: { type: String },

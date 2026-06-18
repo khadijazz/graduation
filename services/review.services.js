@@ -176,32 +176,63 @@ exports.createReviewService = async (req) => {
   return review;
 };
 
-exports.getCaregiverReviewsService = async (req) => {
-    const { caregiverId } = req.params;
+exports.getMyReviewsService = async (req) => {
+  const revieweeModel =
+    req.user.role === "caregiver"
+      ? "Caregiver"
+      : "Userlog";
 
-    const caregiver = await Caregiver.findById(caregiverId);
-    if (!caregiver) {
-        throw new ApiError("Caregiver not found", 404);
+  const reviews = await Review.find({
+    reviewee: req.user._id,
+    revieweeModel,
+  })
+    .populate("reviewer", "full_name profile_picture")
+    .populate("booking", "_id bookingStatus price")
+    .sort({ createdAt: -1 });
+
+  const ratingBreakdown = {
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+  };
+
+  reviews.forEach((review) => {
+    const rating = Math.round(review.overallRating);
+
+    if (ratingBreakdown[rating] !== undefined) {
+      ratingBreakdown[rating]++;
     }
+  });
 
-    const reviews = await Review.find({ caregiver: caregiverId })
-        .populate("client", "full_name profile_picture");
+  let averageRating = 0;
+  let totalReviewsCount = 0;
 
-    // Calculate rating breakdown
-    const ratingBreakdown = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-    reviews.forEach(r => {
-        const rating = Math.round(r.overallRating);
-        if (ratingBreakdown[rating] !== undefined) {
-            ratingBreakdown[rating]++;
-        }
-    });
+  if (revieweeModel === "Caregiver") {
+    const caregiver = await Caregiver.findById(
+      req.user._id
+    ).select("averageRating totalReviewsCount");
 
-    return {
-        reviews,
-        averageRating: caregiver.averageRating || 0,
-        totalReviewsCount: caregiver.totalReviewsCount || 0,
-        ratingBreakdown
-    };
+    averageRating = caregiver?.averageRating || 0;
+    totalReviewsCount =
+      caregiver?.totalReviewsCount || 0;
+  } else {
+    const client = await Userlog.findById(
+      req.user._id
+    ).select("averageRating totalReviewsCount");
+
+    averageRating = client?.averageRating || 0;
+    totalReviewsCount =
+      client?.totalReviewsCount || 0;
+  }
+
+  return {
+    reviews,
+    averageRating,
+    totalReviewsCount,
+    ratingBreakdown,
+  };
 };
 
 exports.adminGetReviewsService = async (req) => {
