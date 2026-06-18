@@ -83,7 +83,16 @@ national_id: String,
      ref: "admin",
      default: null
    },
+   
+  averageRating: {
+  type: Number,
+  default: 0
+},
 
+totalReviewsCount: {
+  type: Number,
+  default: 0
+},
    passwordResetToken: {type: String,default: null},
    passwordResetExpires: {type: Date,default: null},          
    passwordResetAttempts: {type: Number,default: 0},

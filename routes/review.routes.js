@@ -5,7 +5,7 @@ const verifyUser = require("../Utills/verifyUser")
 const { permittedTo } = require("../Utills/premittedTo");
 router.use(verifyUser);
 
-router.post("/create_review/:bookingId", permittedTo(["client"]), reviewController.createReview)
+router.post("/create_review/:bookingId", permittedTo(["client","caregiver"]), reviewController.createReview)
 router.get("/getAllReviews",permittedTo(["admin"]), reviewController.getAllReviews);
 
 router.get("/caregiver/:caregiverId", permittedTo(["client", "caregiver", "admin"]), reviewController.getCaregiverReviews);

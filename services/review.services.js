@@ -1,88 +1,179 @@
 const Review = require("../models/review.model");
 const Booking = require("../models/booking.model");
 const Caregiver = require("../models/caregiver.model");
+const Userlog = require("../models/userlog.model");
 const { ApiError } = require("../Utills/ApiError");
 const { createNotification } = require("./notification.services");
 
 exports.createReviewService = async (req) => {
- const { bookingId } = req.params;
-    const {
-        overallRating,
-        professionalismRating,
-        serviceQualityRating,
-        punctualityRating,
-        communicationRating,
-        reviewComment
-    } = req.body;
+  const { bookingId } = req.params;
 
-    if (!bookingId) {
-        throw new ApiError("Booking ID is required", 400);
+  const {
+    overallRating,
+    professionalismRating,
+    serviceQualityRating,
+    punctualityRating,
+    communicationRating,
+    reviewComment,
+  } = req.body;
+
+  if (!bookingId) {
+    throw new ApiError("Booking ID is required", 400);
+  }
+
+  const booking = await Booking.findById(bookingId);
+
+  if (!booking) {
+    throw new ApiError("Booking not found", 404);
+  }
+
+  const isClient =
+    booking.client.toString() === req.user._id.toString();
+
+  const isCaregiver =
+    booking.caregiver.toString() === req.user._id.toString();
+
+  if (!isClient && !isCaregiver) {
+    throw new ApiError(
+      "Unauthorized to review this booking",
+      403
+    );
+  }
+
+  if (booking.bookingStatus !== "COMPLETED") {
+    throw new ApiError(
+      "Reviews can only be submitted for completed bookings",
+      400
+    );
+  }
+
+  const existing = await Review.findOne({
+    booking: bookingId,
+    reviewer: req.user._id,
+  });
+
+  if (existing) {
+    throw new ApiError(
+      "You already reviewed this booking",
+      400
+    );
+  }
+
+  const ratings = [
+    overallRating,
+    professionalismRating,
+    serviceQualityRating,
+    punctualityRating,
+    communicationRating,
+  ];
+
+  for (const r of ratings) {
+    if (
+      r === undefined ||
+      r === null ||
+      isNaN(Number(r)) ||
+      Number(r) < 1 ||
+      Number(r) > 5
+    ) {
+      throw new ApiError(
+        "All ratings must be numbers between 1 and 5",
+        400
+      );
     }
+  }
 
-    const booking = await Booking.findById(bookingId);
-    if (!booking) {
-        throw new ApiError("Booking not found", 404);
-    }
+  let reviewerModel;
+  let reviewee;
+  let revieweeModel;
 
-    // Verify booking belongs to authenticated client
-    if (booking.client.toString() !== req.user._id.toString()) {
-        throw new ApiError("Unauthorized to review this booking", 403);
-    }
+  if (isClient) {
+    reviewerModel = "Userlog";
+    reviewee = booking.caregiver;
+    revieweeModel = "Caregiver";
+  } else {
+    reviewerModel = "Caregiver";
+    reviewee = booking.client;
+    revieweeModel = "Userlog";
+  }
 
-    // Verify booking status is completed
-    if (booking.bookingStatus !== "COMPLETED") {
-        throw new ApiError("Reviews can only be submitted for completed bookings", 400);
-    }
+  const review = await Review.create({
+    booking: bookingId,
 
-    // Verify no review exists for this booking
-    const existing = await Review.findOne({ booking: bookingId });
-    if (existing) {
-        throw new ApiError("A review already exists for this booking", 400);
-    }
+    reviewer: req.user._id,
+    reviewerModel,
 
-    // Verify ratings are between 1 and 5
-    const ratings = [overallRating, professionalismRating, serviceQualityRating, punctualityRating, communicationRating];
-    for (const r of ratings) {
-        if (r === undefined || r === null || isNaN(Number(r)) || Number(r) < 1 || Number(r) > 5) {
-            throw new ApiError("All ratings must be numbers between 1 and 5", 400);
-        }
-    }
+    reviewee,
+    revieweeModel,
 
-    // Create review
-    const review = await Review.create({
-        booking: bookingId,
-        client: req.user._id,
-        caregiver: booking.caregiver,
-        overallRating: Number(overallRating),
-        professionalismRating: Number(professionalismRating),
-        serviceQualityRating: Number(serviceQualityRating),
-        punctualityRating: Number(punctualityRating),
-        communicationRating: Number(communicationRating),
-        reviewComment: reviewComment || ""
+    overallRating: Number(overallRating),
+    professionalismRating: Number(
+      professionalismRating
+    ),
+    serviceQualityRating: Number(
+      serviceQualityRating
+    ),
+    punctualityRating: Number(
+      punctualityRating
+    ),
+    communicationRating: Number(
+      communicationRating
+    ),
+
+    reviewComment: reviewComment || "",
+  });
+
+  const reviews = await Review.find({
+    reviewee,
+  });
+
+  const totalReviewsCount = reviews.length;
+
+  const sumRatings = reviews.reduce(
+    (sum, review) => sum + review.overallRating,
+    0
+  );
+
+  const averageRating =
+    totalReviewsCount > 0
+      ? sumRatings / totalReviewsCount
+      : 0;
+
+  if (revieweeModel === "Caregiver") {
+    await Caregiver.findByIdAndUpdate(reviewee, {
+      averageRating: parseFloat(
+        averageRating.toFixed(2)
+      ),
+      totalReviewsCount,
     });
-
-    // Recalculate caregiver rating statistics
-    const caregiverReviews = await Review.find({ caregiver: booking.caregiver });
-    const totalReviewsCount = caregiverReviews.length;
-    const sumRatings = caregiverReviews.reduce((sum, r) => sum + r.overallRating, 0);
-    const averageRating = sumRatings / totalReviewsCount;
-
-    await Caregiver.findByIdAndUpdate(booking.caregiver, {
-        averageRating: parseFloat(averageRating.toFixed(2)),
-        totalReviewsCount
+  } else {
+    await Userlog.findByIdAndUpdate(reviewee, {
+      averageRating: parseFloat(
+        averageRating.toFixed(2)
+      ),
+      totalReviewsCount,
     });
+  }
 
-    await createNotification({
-      recipientId: booking.caregiver,
-      recipientRole: "caregiver",
-      notificationType: "REVIEW_SUBMITTED",
-      title: "New Review",
-      message: "You have received a new review from a client.",
-      relatedEntityId: review._id,
-      relatedEntityType: "Review"
-    });
+  await createNotification({
+    recipientId: reviewee,
+    recipientRole:
+      revieweeModel === "Caregiver"
+        ? "caregiver"
+        : "client",
 
-    return review;
+    notificationType: "REVIEW_SUBMITTED",
+
+    title: "New Review",
+
+    message: isClient
+      ? "You have received a new review from a client."
+      : "You have received a new review from a caregiver.",
+
+    relatedEntityId: review._id,
+    relatedEntityType: "Review",
+  });
+
+  return review;
 };
 
 exports.getCaregiverReviewsService = async (req) => {

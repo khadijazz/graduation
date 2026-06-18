@@ -1,55 +1,78 @@
 const mongoose = require("mongoose");
 
-const reviewSchema = new mongoose.Schema({
+const reviewSchema = new mongoose.Schema(
+  {
     booking: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Booking",
-        required: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Booking",
+      required: true,
     },
-    client: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Userlog",
-        required: true,
+
+    reviewer: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      refPath: "reviewerModel",
     },
-    caregiver: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Caregiver",
-        required: true,
+
+    reviewerModel: {
+      type: String,
+      required: true,
+      enum: ["Userlog", "Caregiver"],
     },
+
+    reviewee: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      refPath: "revieweeModel",
+    },
+
+    revieweeModel: {
+      type: String,
+      required: true,
+      enum: ["Userlog", "Caregiver"],
+    },
+
     overallRating: {
-        type: Number,
-        required: true,
-        min: 1,
-        max: 5,
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5,
     },
+
     professionalismRating: {
-        type: Number,
-        required: true,
-        min: 1,
-        max: 5,
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5,
     },
+
     serviceQualityRating: {
-        type: Number,
-        required: true,
-        min: 1,
-        max: 5,
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5,
     },
+
     punctualityRating: {
-        type: Number,
-        required: true,
-        min: 1,
-        max: 5,
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5,
     },
+
     communicationRating: {
-        type: Number,
-        required: true,
-        min: 1,
-        max: 5,
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5,
     },
+
     reviewComment: {
-        type: String,
-        default: "",
+      type: String,
+      default: "",
     },
-} , {timestamps: true})
+  },
+  { timestamps: true }
+);
 
 module.exports = mongoose.model("Review", reviewSchema);
