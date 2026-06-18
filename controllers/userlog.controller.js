@@ -127,7 +127,7 @@ exports.openResetPassword = async (req, res) => {
     </head>
     <body>
       <script>
-        window.location.href = "ehtmam://reset-password/${token}";
+        window.location.href = "ehtmam://reset-password?token=${token}";
       </script>
 
       <h2>Opening Ehtmam App...</h2>
