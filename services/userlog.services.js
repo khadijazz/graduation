@@ -129,7 +129,7 @@ const forgotPassword = async (data) => {
 
   await user.save({ validateBeforeSave: false });
 
-  const resetURL = `https://graduation-production-b4c1.up.railway.app/reset-password/${resetToken}`;
+  const resetURL = `https://graduation-production-b4c1.up.railway.app/userlog/reset-password/${resetToken}`;
 
   const message = `
 Hello,
