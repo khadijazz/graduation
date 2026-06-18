@@ -114,27 +114,26 @@ return {
 
 const getUserById=(id)=>Userlog.findById(id);
 
-const forgotPassword = async (data, protocol, host) => {
-  
+const forgotPassword = async (data) => {
   let user = await Userlog.findOne({ email: data.email });
- if (!user) {
-  user = await CaregiverModel.findOne({ email: data.email });
-}
+
+  if (!user) {
+    user = await CaregiverModel.findOne({ email: data.email });
+  }
+
   if (!user) {
     throw new ApiError("There is no user with that email address", 404);
   }
- 
-  
+
   const resetToken = user.createPasswordResetToken();
- 
-  
+
   await user.save({ validateBeforeSave: false });
- 
-  
-  const resetURL = `${protocol}://${host}/userlog/reset-password/${resetToken}`;
- 
-  const message =
-    `Hello,
+
+  // Deep Link for Flutter App
+  const resetURL = `ehtmam://reset-password/${resetToken}`;
+
+  const message = `
+Hello,
 
 We received a request to reset your password.
 
@@ -145,7 +144,7 @@ This link is valid for 10 minutes.
 
 If you did not request this, please ignore this email.
 `;
- 
+
   try {
     await sendEmail({
       email: user.email,
@@ -153,12 +152,12 @@ If you did not request this, please ignore this email.
       message,
     });
   } catch (err) {
-    
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     user.passwordResetAttempts = undefined;
+
     await user.save({ validateBeforeSave: false });
- 
+
     throw new ApiError(
       "There was an error sending the email. Please try again later.",
       500
