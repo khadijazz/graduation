@@ -51,7 +51,7 @@ const userlogSchema = new mongoose.Schema({
       }
     },
     address : addressSchema,
-
+phoneNumber:{ type: String, unique: true }, 
 
     active: {
       type: Boolean,
