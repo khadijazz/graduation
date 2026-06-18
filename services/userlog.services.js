@@ -129,15 +129,15 @@ const forgotPassword = async (data) => {
 
   await user.save({ validateBeforeSave: false });
 
-  // Deep Link for Flutter App
-  const resetURL = `ehtmam://reset-password/${resetToken}`;
+  const resetURL = `https://graduation-production-b4c1.up.railway.app/reset-password/${resetToken}`;
 
   const message = `
 Hello,
 
 We received a request to reset your password.
 
-Reset your password using this link:
+Click the link below to reset your password:
+
 ${resetURL}
 
 This link is valid for 10 minutes.

@@ -114,3 +114,29 @@ exports.deleteuserlog = async (req, res, next) => {
     data: null
   });
 };
+
+exports.openResetPassword = async (req, res) => {
+  const { token } = req.params;
+
+  res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Ehtmam</title>
+      <meta charset="utf-8" />
+    </head>
+    <body>
+      <script>
+        window.location.href = "ehtmam://reset-password/${token}";
+      </script>
+
+      <h2>Opening Ehtmam App...</h2>
+
+      <p>
+        If the app does not open automatically,
+        please make sure Ehtmam is installed.
+      </p>
+    </body>
+    </html>
+  `);
+};

@@ -12,6 +12,7 @@ router.post('/signup', upload.fields([
 
 router.post('/login', userlogcontroller.loginUser);
 router.post('/forgotpassword', userlogcontroller.forgotPassword);
+router.get('/reset-password/:token', userlogcontroller.openResetPassword);
 router.patch('/resetpassword/:token', userlogcontroller.resetPassword);
 router.patch('/updatepassword', verifyUser, userlogcontroller.updatePassword);
 router.delete('/delete_me', verifyUser, permittedTo(["client"]),userlogcontroller.deleteuserlog);
