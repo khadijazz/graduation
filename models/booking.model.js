@@ -72,4 +72,27 @@ const bookingSchema = new mongoose.Schema({
   },
 }, { timestamps: true });
 
+// Pre-save middleware to handle isTrackingActive status transitions
+bookingSchema.pre("save", function () {
+  if (this.isModified("bookingStatus")) {
+    if (["COMPLETED", "CANCELLED", "REJECTED"].includes(this.bookingStatus)) {
+      this.isTrackingActive = false;
+    }
+  }
+});
+
+// Pre-findOneAndUpdate middleware to handle isTrackingActive status transitions
+bookingSchema.pre("findOneAndUpdate", function () {
+  const update = this.getUpdate();
+  if (update) {
+    if (update.bookingStatus && ["COMPLETED", "CANCELLED", "REJECTED"].includes(update.bookingStatus)) {
+      update.isTrackingActive = false;
+    }
+    if (update.$set && update.$set.bookingStatus && ["COMPLETED", "CANCELLED", "REJECTED"].includes(update.$set.bookingStatus)) {
+      update.$set.isTrackingActive = false;
+    }
+  }
+});
+
 module.exports = mongoose.model("Booking", bookingSchema);
+

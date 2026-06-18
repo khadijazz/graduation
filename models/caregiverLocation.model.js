@@ -19,11 +19,8 @@ const caregiverLocationSchema = new mongoose.Schema({
   longitude: {
     type: Number,
     required: true,
-  },
-  lastUpdated: {
-    type: Date,
-    default: Date.now,
   }
 }, { timestamps: true });
 
 module.exports = mongoose.model("CaregiverLocation", caregiverLocationSchema);
+
