@@ -43,11 +43,11 @@ const deleteAllAdmins = async () => {
 const getPendingCaregiversService = async () => {
   return await Caregiver.find({
     status: "Pending Approval"
-  }).select("+verifcation_documents +mental_health_document +national_id +profile_picture +certifications" );
+  }).select("+verification_documents +mental_health_document +national_id +profile_picture +certifications" );
 };
 
 const getCaregiverDetailsService = async (caregiverId) => {
-  const caregiver = await Caregiver.findById(caregiverId).select("+verifcation_documents"+ "national_id"+ "profile_picture"+ "mental_health_document"+ "certifications");
+  const caregiver = await Caregiver.findById(caregiverId).select("+verification_documents"+ "national_id"+ "profile_picture"+ "mental_health_document"+ "certifications");
   if (!caregiver) {
     throw new ApiError("Caregiver not found", 404);
   }

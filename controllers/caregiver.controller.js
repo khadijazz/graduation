@@ -22,20 +22,20 @@ exports.newCaregiver = async (req, res) => {
       );
   }
 
-  if (req.files?.verifcation_documents) {
-    caregiverData.verifcation_documents =
+  if (req.files?.verification_documents) {
+    caregiverData.verification_documents =
       await Promise.all(
-        req.files.verifcation_documents.map(
+        req.files.verification_documents.map(
           async (file) => await uploadToCloudinary(file)
         )
       );
   }
 
   // Mental Health Certificate
-  if (req.files?.mental_health_certificate) {
-    caregiverData.mental_health_certificate =
+  if (req.files?.mental_health_document) {
+    caregiverData.mental_health_document =
       await uploadToCloudinary(
-        req.files.mental_health_certificate[0]
+        req.files.mental_health_document[0]
       );
   }
   if (req.files?.national_id) {
