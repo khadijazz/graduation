@@ -21,6 +21,7 @@ const initSocket = (server) => {
     try {
       let token = socket.handshake.auth?.token || socket.handshake.query?.token;
       if (!token) {
+        console.error("Socket connection rejected: Token missing");
         return next(new Error("Authentication error: Token missing"));
       }
 
@@ -39,19 +40,23 @@ const initSocket = (server) => {
       }
 
       if (!user) {
+        console.error(`Socket connection rejected: User not found for payload ID ${payload.id}`);
         return next(new Error("Authentication error: User no longer exists"));
       }
 
       if (user.isBlocked) {
+        console.error(`Socket connection rejected: User ${user._id} is blocked`);
         return next(new Error("Authentication error: Your account has been blocked. Please contact support."));
       }
 
       // Check caregiver status if they are a caregiver
       if (user.role === "caregiver") {
         if (user.status === "Pending Approval") {
+          console.error(`Socket connection rejected: Caregiver ${user._id} status is Pending Approval`);
           return next(new Error("Authentication error: Your account is pending approval."));
         }
         if (user.status === "Declined") {
+          console.error(`Socket connection rejected: Caregiver ${user._id} status is Declined`);
           return next(new Error("Authentication error: Your caregiver application has been declined."));
         }
       }
@@ -59,6 +64,7 @@ const initSocket = (server) => {
       socket.user = user;
       next();
     } catch (err) {
+      console.error(`Socket authentication error: ${err.message}`);
       return next(new Error(`Authentication error: ${err.message}`));
     }
   });
@@ -129,6 +135,7 @@ const initSocket = (server) => {
 
     // 3. location_update (emitted by caregiver)
     socket.on("location_update", async (data, callback) => {
+      console.log("Location Update Received", data);
       try {
         const { bookingId, lat, lng } = data || {};
         if (!bookingId) {
