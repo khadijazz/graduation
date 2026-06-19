@@ -5,7 +5,7 @@ const Booking = require("../models/booking.model");
 
 exports.createComplaint = async (req, res) => {
   const { bookingId } = req.params;
-  const { subject, message } = req.body;
+  const { subject, message, complaint_category } = req.body;
 
   if (!subject || !message) {
     throw new ApiError("Subject and message are required", 400);
@@ -24,6 +24,7 @@ exports.createComplaint = async (req, res) => {
     booking: booking._id,
     subject,
     message,
+    complaint_category,
   });
 
   res.status(201).json({
@@ -47,6 +48,7 @@ exports.createComplaint = async (req, res) => {
       subject: complaint.subject,
       message: complaint.message,
       status: complaint.status,
+      complaint_category: complaint.complaint_category,
       createdAt: complaint.createdAt,
     },
   });
@@ -94,6 +96,7 @@ exports.getComplaintDetails = async (req, res) => {
       subject: complaint.subject,
       message: complaint.message,
       status: complaint.status,
+      complaint_category: complaint.complaint_category,
       createdAt: complaint.createdAt,
       updatedAt: complaint.updatedAt
     }
