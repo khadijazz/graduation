@@ -19,7 +19,7 @@ router.post('/signup',upload.fields([
     { name: "profile_picture", maxCount: 1 },
     { name: "certifications", maxCount: 5 },
     { name: "verification_documents", maxCount: 5 },
-    { name: "mental_health_certificate", maxCount: 1 },
+    { name: "mental_health_document", maxCount: 1 },
      { name: "national_id", maxCount: 2 }
   ]),controller.newCaregiver)
 
