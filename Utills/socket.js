@@ -163,9 +163,18 @@ const initSocket = (server) => {
         }
 
         const booking = await Booking.findById(bookingId);
+
         if (!booking) {
           throw new Error("Booking not found");
         }
+
+        console.log("========== CAREGIVER CHECK ==========");
+
+        console.log({
+          bookingCaregiver: booking.caregiver.toString(),
+          socketUser: socket.user._id.toString(),
+          role: socket.user.role
+        });
 
         // Validate caregiver ownership
         if (booking.caregiver.toString() !== socket.user._id.toString()) {
@@ -185,8 +194,15 @@ const initSocket = (server) => {
             latitude: lat,
             longitude: lng
           },
-          { upsert: true, new: true, setDefaultsOnInsert: true }
+          {
+            upsert: true,
+            new: true,
+            setDefaultsOnInsert: true
+          }
         );
+
+        console.log("========== LOCATION SAVED ==========");
+        console.log(location);
 
         const broadcastPayload = {
           bookingId,
