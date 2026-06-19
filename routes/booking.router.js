@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const bookingController = require("../controllers/booking.controller");
-const locationController = require("../controllers/location.controller");
 const taskController = require("../controllers/task.controller");
 const verifyUser = require("../Utills/verifyUser");
 const { permittedTo } = require("../Utills/premittedTo");
@@ -29,8 +28,6 @@ router.route("/:bookingId/progress")
 router.route("/:id/check-in")
     .patch(permittedTo(["caregiver"]), taskController.checkIn);
 
-router.route("/:id/location")
-    .get(permittedTo(["client", "caregiver", "admin"]), locationController.getLocation);
 
 router.route("/:id")
     .get(permittedTo(["client", "caregiver"]), bookingController.getBookingById)

@@ -97,6 +97,18 @@ const initSocket = (server) => {
         socket.join(roomName);
         console.log(`Socket ${socket.id} joined room ${roomName}`);
 
+        // Immediately retrieve latest persisted caregiver location and send it to the joining user
+        const location = await CaregiverLocation.findOne({ booking: bookingId });
+        if (location) {
+          socket.emit("current_location", {
+            bookingId: bookingId,
+            lat: location.latitude,
+            lng: location.longitude,
+            updatedAt: location.updatedAt
+          });
+          console.log(`Sent current_location to socket ${socket.id} for room ${roomName}`);
+        }
+
         if (callback) {
           callback({ status: "success", message: `Joined room ${roomName}` });
         }
