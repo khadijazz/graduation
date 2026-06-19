@@ -75,9 +75,7 @@ const bookingSchema = new mongoose.Schema({
 // Pre-save middleware to handle isTrackingActive status transitions
 bookingSchema.pre("save", function () {
   if (this.isModified("bookingStatus")) {
-    if (["COMPLETED", "CANCELLED", "REJECTED"].includes(this.bookingStatus)) {
-      this.isTrackingActive = false;
-    }
+    this.isTrackingActive = (this.bookingStatus === "IN_PROGRESS");
   }
 });
 
@@ -85,11 +83,11 @@ bookingSchema.pre("save", function () {
 bookingSchema.pre("findOneAndUpdate", function () {
   const update = this.getUpdate();
   if (update) {
-    if (update.bookingStatus && ["COMPLETED", "CANCELLED", "REJECTED"].includes(update.bookingStatus)) {
-      update.isTrackingActive = false;
+    if (update.bookingStatus !== undefined) {
+      update.isTrackingActive = (update.bookingStatus === "IN_PROGRESS");
     }
-    if (update.$set && update.$set.bookingStatus && ["COMPLETED", "CANCELLED", "REJECTED"].includes(update.$set.bookingStatus)) {
-      update.$set.isTrackingActive = false;
+    if (update.$set && update.$set.bookingStatus !== undefined) {
+      update.$set.isTrackingActive = (update.$set.bookingStatus === "IN_PROGRESS");
     }
   }
 });

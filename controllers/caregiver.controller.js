@@ -31,7 +31,6 @@ exports.newCaregiver = async (req, res) => {
       );
   }
 
-  // Mental Health Certificate
   if (req.files?.mental_health_document) {
     caregiverData.mental_health_document =
       await uploadToCloudinary(

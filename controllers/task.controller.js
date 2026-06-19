@@ -56,6 +56,10 @@ exports.checkIn = async (req, res, next) => {
       throw new ApiError("Booking already completed", 400);
     }
 
+    if (booking.bookingStatus === "CANCELLED") {
+      throw new ApiError("Booking is cancelled", 400);
+    }
+
     const checkInTime = new Date();
 
     booking.bookingStatus = "IN_PROGRESS";
