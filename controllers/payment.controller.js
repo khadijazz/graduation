@@ -28,7 +28,7 @@ exports.payBookingFromWallet = async (req, res, next) => {
 };
 exports.paymobRedirect = async (req, res, next) => {
   try {
-    await paymentService.handlePaymobRedirect(req, res);
+    await paymentService.paymobRedirect(req, res);
   } catch (error) {
     next(error);
   }

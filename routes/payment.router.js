@@ -6,7 +6,6 @@ const { permittedTo } = require("../Utills/premittedTo");
 
 router.post("/callback", paymentController.paymobCallback);
 router.get("/callback", paymentController.paymobCallback);
-router.get("/redirect",paymentController.paymobRedirect);
 
 router.use(verifyUser);
 

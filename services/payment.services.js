@@ -312,10 +312,10 @@ const payBookingFromWallet = async (user, body) => {
   };
 };
 
-const handlePaymobRedirect = async (req, res) => {
-  const { success } = req.query;
+const paymobRedirect = async (req, res) => {
+  const success = req.query.success === "true";
 
-  if (success === "true") {
+  if (success) {
     return res.redirect("ehtmam://payment/success");
   }
 
@@ -326,5 +326,5 @@ module.exports = {
   createWalletTopup,
   handlePaymobCallback,
   payBookingFromWallet,
-  handlePaymobRedirect
+  paymobRedirect
 };
