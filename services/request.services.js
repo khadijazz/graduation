@@ -14,11 +14,31 @@ const getmyrequests = (userId) =>
 
     
 
-const getAvailableRequests = async (governorate) => {
+const mapSpecialtyToServiceType = (speciality) => {
+  if (!speciality) return "";
+  const mapping = {
+    "elderly care": "Elderly Care",
+    "child care": "Child Care",
+    "pet care": "Pet Care",
+    "plant care": "Plant Care",
+    "shopping assistant": "Shopping Assistant",
+    "nursing assistant": "Nursing Assistant"
+  };
+  return mapping[speciality.toLowerCase()] || speciality;
+};
+
+const getAvailableRequests = async (governorate, speciality) => {
+  if (!speciality) {
+    return [];
+  }
+
+  const serviceType = mapSpecialtyToServiceType(speciality);
+
   const requests = await requestModel
     .find({
       status: "PENDING",
-      governorate: governorate
+      governorate: governorate,
+      serviceType: serviceType
     })
     .populate({
       path: "client",

@@ -45,7 +45,8 @@ async function test() {
     title: "Test Request",
     Description: "Need help",
     governorate: "Cairo",
-    budget: 150
+    budget: 150,
+    serviceType: "Elderly Care"
   });
 
   const testOffer = await Offer.create({

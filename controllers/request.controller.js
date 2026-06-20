@@ -150,7 +150,7 @@ exports.getAvailableRequests = async (req, res, next) => {
     throw new ApiError("Your account is suspended", 403);
   }
 
-  const requests = await requestService.getAvailableRequests(req.user.governorate);
+  const requests = await requestService.getAvailableRequests(req.user.governorate, req.user.speciality);
 
   res.status(200).json({
     success: true,

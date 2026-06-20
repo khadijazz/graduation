@@ -44,6 +44,18 @@ budget: {
   type: Number,
   required: [true, "Budget is required"],
 },
+serviceType: {
+  type: String,
+  enum: [
+    "Pet Care",
+    "Elderly Care",
+    "Child Care",
+    "Plant Care",
+    "Shopping Assistant",
+    "Nursing Assistant"
+  ],
+  required: [true, "Service type is required"]
+},
 }, { timestamps: true });
 
 const Request = mongoose.model("Request", requestSchema);

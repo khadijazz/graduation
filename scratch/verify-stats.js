@@ -65,7 +65,8 @@ async function test() {
     title: "Stat Test Request",
     Description: "Need help",
     governorate: "Cairo",
-    budget: 100
+    budget: 100,
+    serviceType: "Elderly Care"
   });
 
   const offer1 = await Offer.create({
