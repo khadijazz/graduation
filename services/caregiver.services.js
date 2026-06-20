@@ -18,15 +18,7 @@ const createcaregiver = async (data) => {
   return newCaregiver;
 };
 
-const getallcaregiver = async (queryParams) => {
-    const apiFeature = new ApiFeature(
-        caregiver.find({ status: "Verified" })
-            .select("full_name email createdAt status speciality"),
-        queryParams
-    );
-
-
-
+const getallcaregiver = async () => {
     const caregivers = await caregiver.find({ status: "Verified" }).select("full_name email createdAt status speciality");
 
     return Promise.all(

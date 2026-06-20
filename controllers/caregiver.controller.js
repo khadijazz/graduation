@@ -79,7 +79,7 @@ exports.getCareGiver = async (req,res)=>{
 
 exports.getallcaregiver = async (req, res, next) => {
 
-    const caregivers = await caregiverServices.getallcaregiver(req.query);
+    const caregivers = await caregiverServices.getallcaregiver();
 
     res.status(200).json({
         status: "success",
