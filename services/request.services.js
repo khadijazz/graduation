@@ -9,7 +9,7 @@ const createRequestService = (data) =>
 const getmyrequests = (userId) =>
   requestModel
     .find({ client: userId })
-    .populate("client", "full_name phone")
+    .populate("client", "full_name phone ")
     .populate("service", "serviceName");
 
     
@@ -42,7 +42,7 @@ const getAvailableRequests = async (governorate, speciality) => {
     })
     .populate({
       path: "client",
-      select: "_id full_name email phone governorate budget duration notes date time",
+      select: "_id full_name email phone governorate budget duration notes date time profile_picture",
       match: { active: { $ne: false } }
     })
     .populate("service", "serviceName")
@@ -54,7 +54,7 @@ const getAvailableRequests = async (governorate, speciality) => {
 const getrequestbyid = async (id) => {
   const request = await requestModel
     .findById(id)
-    .populate("client", " full_name phone")
+    .populate("client", " full_name phone profile_picture")
     .populate("service", "serviceName");
 
   if (!request) {
