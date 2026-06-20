@@ -234,7 +234,12 @@ exports.unblockUser = async (req, res) => {
 exports.getDashboardStats = async (req, res) => {
   const stats = await adminServices.getDashboardStatsService();
   res.status(200).json({
+    success: true,
     status: "success",
-    data: stats
+    data: {
+      totalUsers: stats.totalUsers,
+      totalProviders: stats.totalProviders,
+      activeBookings: stats.activeBookings
+    }
   });
 };

@@ -251,8 +251,21 @@ const unblockUserService = async (userId) => {
 };
 
 const getDashboardStatsService = async () => {
+  // Data validation check: identify legacy or corrupted records with invalid, null, or missing roles
+  const invalidRoleUsers = await Userlog.find({
+    $or: [
+      { role: null },
+      { role: "" },
+      { role: { $exists: false } }
+    ]
+  }).select("_id full_name email role");
+
+  if (invalidRoleUsers.length > 0) {
+    console.warn(`[Administrative Review Alert] Found ${invalidRoleUsers.length} legacy or corrupted Userlog records with missing/invalid roles:`, JSON.stringify(invalidRoleUsers, null, 2));
+  }
+
   const [totalUsers, totalProviders, activeBookings] = await Promise.all([
-    Userlog.countDocuments({}),
+    Userlog.countDocuments({ role: "client" }),
     Caregiver.countDocuments({ status: "Verified" }),
     Booking.countDocuments({ bookingStatus: "ACCEPTED" })
   ]);
