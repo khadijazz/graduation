@@ -9,6 +9,9 @@ router.post('/createadmin', admincontroller.createadmin);
 // Admin protected routes
 router.use(verifyUser, permittedTo(["admin"]));
 
+// Dashboard stats
+router.get('/dashboard/stats', admincontroller.getDashboardStats);
+
 // Caregiver approval
 router.get('/caregivers/pending', admincontroller.getPendingCaregivers);
 router.get('/caregivers/:id', admincontroller.getCaregiverDetails);

@@ -230,3 +230,11 @@ exports.unblockUser = async (req, res) => {
     }
   });
 };
+
+exports.getDashboardStats = async (req, res) => {
+  const stats = await adminServices.getDashboardStatsService();
+  res.status(200).json({
+    status: "success",
+    data: stats
+  });
+};

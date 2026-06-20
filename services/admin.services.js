@@ -5,6 +5,7 @@ const Caregiver = require("../models/caregiver.model");
 const Complaint = require("../models/complaint.model");
 const Request = require("../models/request.model");
 const Userlog = require("../models/userlog.model");
+const Booking = require("../models/booking.model");
 const Wallet = require("../models/wallet.model");
 const sendEmail = require("../Utills/email");
 const { ApiError } = require("../Utills/ApiError");
@@ -249,6 +250,19 @@ const unblockUserService = async (userId) => {
   return { account, type };
 };
 
+const getDashboardStatsService = async () => {
+  const [totalUsers, totalProviders, activeBookings] = await Promise.all([
+    Userlog.countDocuments({}),
+    Caregiver.countDocuments({ status: "Verified" }),
+    Booking.countDocuments({ bookingStatus: "ACCEPTED" })
+  ]);
+  return {
+    totalUsers,
+    totalProviders,
+    activeBookings
+  };
+};
+
 module.exports = {
   createadmin,
   updateadmin,
@@ -263,4 +277,5 @@ module.exports = {
   updateComplaintStatusService,
   blockUserService,
   unblockUserService,
+  getDashboardStatsService,
 };
