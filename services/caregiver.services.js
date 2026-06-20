@@ -25,11 +25,9 @@ const getallcaregiver = async (queryParams) => {
         queryParams
     );
 
-    apiFeature.paginate();
-    apiFeature.sort();
-    apiFeature.projection();
 
-    const caregivers = await apiFeature.dbQuery;
+
+    const caregivers = await caregiver.find({ status: "Verified" }).select("full_name email createdAt status speciality");
 
     return Promise.all(
         caregivers.map(async (cg) => ({
