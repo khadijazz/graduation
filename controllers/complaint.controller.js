@@ -5,10 +5,11 @@ const Booking = require("../models/booking.model");
 
 exports.createComplaint = async (req, res) => {
   const { bookingId } = req.params;
+   console.log("BODY:", req.body);
   const { subject, message, complaint_category } = req.body;
 
-  if (!subject || !message) {
-    throw new ApiError("Subject and message are required", 400);
+  if (!subject || !message || !complaint_category) {
+    throw new ApiError("Subject and message and complaint category are required", 400);
   }
 
   const booking = await Booking.findById(bookingId)
@@ -58,17 +59,12 @@ exports.getComplaintDetails = async (req, res) => {
   const { complaintId } = req.params;
 
   const complaint = await Complaint.findById(complaintId)
+    .populate("user", "full_name email")
     .populate({
       path: "booking",
       populate: [
-        {
-          path: "client",
-          select: "full_name email"
-        },
-        {
-          path: "caregiver",
-          select: "full_name email"
-        }
+        { path: "client", select: "full_name email" },
+        { path: "caregiver", select: "full_name email" }
       ]
     });
 
@@ -76,53 +72,126 @@ exports.getComplaintDetails = async (req, res) => {
     throw new ApiError("Complaint not found", 404);
   }
 
+  const client = (complaint.booking && complaint.booking.client)
+    ? {
+        id: complaint.booking.client._id,
+        full_name: complaint.booking.client.full_name,
+        name: complaint.booking.client.full_name,
+        email: complaint.booking.client.email
+      }
+    : (complaint.user
+      ? {
+          id: complaint.user._id,
+          full_name: complaint.user.full_name,
+          name: complaint.user.full_name,
+          email: complaint.user.email
+        }
+      : null);
+
+  const caregiver = (complaint.booking && complaint.booking.caregiver)
+    ? {
+        id: complaint.booking.caregiver._id,
+        full_name: complaint.booking.caregiver.full_name,
+        name: complaint.booking.caregiver.full_name,
+        email: complaint.booking.caregiver.email
+      }
+    : null;
+
+  const booking = complaint.booking
+    ? {
+        id: complaint.booking._id
+      }
+    : null;
+
   res.status(200).json({
     status: "success",
     data: {
       complaintId: complaint._id,
-
-      client: {
-        id: complaint.booking.client._id,
-        name: complaint.booking.client.full_name,
-        email: complaint.booking.client.email
-      },
-
-      caregiver: {
-        id: complaint.booking.caregiver._id,
-        name: complaint.booking.caregiver.full_name,
-        email: complaint.booking.caregiver.email
-      },
-
       subject: complaint.subject,
       message: complaint.message,
-      status: complaint.status,
       complaint_category: complaint.complaint_category,
+      status: complaint.status,
       createdAt: complaint.createdAt,
-      updatedAt: complaint.updatedAt
+      client,
+      caregiver,
+      booking,
+      user: {
+        id: complaint.user?._id || (complaint.booking && complaint.booking.client?._id) || null,
+        name: complaint.user?.full_name || (complaint.booking && complaint.booking.client?.full_name) || null,
+        email: complaint.user?.email || (complaint.booking && complaint.booking.client?.email) || null
+      }
     }
   });
 };
 
+
+
+
 exports.getAllComplaints = async (req, res) => {
   const complaints = await Complaint.find()
+    .populate("user", "full_name email")
     .populate({
       path: "booking",
       populate: [
-        {
-          path: "client",
-          select: "full_name email"
-        },
-        {
-          path: "caregiver",
-          select: "full_name email"
-        }
+        { path: "client", select: "full_name email" },
+        { path: "caregiver", select: "full_name email" }
       ]
     });
+
+  const formattedComplaints = complaints.map(complaint => {
+    const client = (complaint.booking && complaint.booking.client)
+      ? {
+          id: complaint.booking.client._id,
+          full_name: complaint.booking.client.full_name,
+          name: complaint.booking.client.full_name,
+          email: complaint.booking.client.email
+        }
+      : (complaint.user
+        ? {
+            id: complaint.user._id,
+            full_name: complaint.user.full_name,
+            name: complaint.user.full_name,
+            email: complaint.user.email
+          }
+        : null);
+
+    const caregiver = (complaint.booking && complaint.booking.caregiver)
+      ? {
+          id: complaint.booking.caregiver._id,
+          full_name: complaint.booking.caregiver.full_name,
+          name: complaint.booking.caregiver.full_name,
+          email: complaint.booking.caregiver.email
+        }
+      : null;
+
+    const booking = complaint.booking
+      ? {
+          id: complaint.booking._id
+        }
+      : null;
+
+    return {
+      complaintId: complaint._id,
+      subject: complaint.subject,
+      message: complaint.message,
+      complaint_category: complaint.complaint_category,
+      status: complaint.status,
+      createdAt: complaint.createdAt,
+      client,
+      caregiver,
+      booking,
+      user: {
+        id: complaint.user?._id || (complaint.booking && complaint.booking.client?._id) || null,
+        name: complaint.user?.full_name || (complaint.booking && complaint.booking.client?.full_name) || null,
+        email: complaint.user?.email || (complaint.booking && complaint.booking.client?.email) || null
+      }
+    };
+  });
 
   res.status(200).json({
     status: "success",
     data: {
-      complaints
+      complaints: formattedComplaints
     }
   });
 };

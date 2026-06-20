@@ -73,21 +73,121 @@ exports.rejectCaregiver = async (req, res) => {
 
 exports.getComplaints = async (req, res) => {
   const complaints = await adminServices.getComplaintsService();
+
+  const formattedComplaints = complaints.map(complaint => {
+    const client = (complaint.booking && complaint.booking.client)
+      ? {
+          id: complaint.booking.client._id,
+          full_name: complaint.booking.client.full_name,
+          name: complaint.booking.client.full_name,
+          email: complaint.booking.client.email
+        }
+      : (complaint.user
+        ? {
+            id: complaint.user._id,
+            full_name: complaint.user.full_name,
+            name: complaint.user.full_name,
+            email: complaint.user.email
+          }
+        : null);
+
+    const caregiver = (complaint.booking && complaint.booking.caregiver)
+      ? {
+          id: complaint.booking.caregiver._id,
+          full_name: complaint.booking.caregiver.full_name,
+          name: complaint.booking.caregiver.full_name,
+          email: complaint.booking.caregiver.email
+        }
+      : null;
+
+    const booking = complaint.booking
+      ? {
+          id: complaint.booking._id
+        }
+      : null;
+
+    return {
+      complaintId: complaint._id,
+      subject: complaint.subject,
+      message: complaint.message,
+      complaint_category: complaint.complaint_category,
+      status: complaint.status,
+      createdAt: complaint.createdAt,
+      client,
+      caregiver,
+      booking,
+      user: {
+        id: complaint.user?._id || (complaint.booking && complaint.booking.client?._id) || null,
+        name: complaint.user?.full_name || (complaint.booking && complaint.booking.client?.full_name) || null,
+        email: complaint.user?.email || (complaint.booking && complaint.booking.client?.email) || null
+      }
+    };
+  });
+
   res.status(200).json({
     status: "success",
-    length: complaints.length,
+    length: formattedComplaints.length,
     data: {
-      complaints
+      complaints: formattedComplaints
     }
   });
 };
 
 exports.getComplaintById = async (req, res) => {
   const complaint = await adminServices.getComplaintByIdService(req.params.id);
+
+  const client = (complaint.booking && complaint.booking.client)
+    ? {
+        id: complaint.booking.client._id,
+        full_name: complaint.booking.client.full_name,
+        name: complaint.booking.client.full_name,
+        email: complaint.booking.client.email
+      }
+    : (complaint.user
+      ? {
+          id: complaint.user._id,
+          full_name: complaint.user.full_name,
+          name: complaint.user.full_name,
+          email: complaint.user.email
+        }
+      : null);
+
+  const caregiver = (complaint.booking && complaint.booking.caregiver)
+    ? {
+        id: complaint.booking.caregiver._id,
+        full_name: complaint.booking.caregiver.full_name,
+        name: complaint.booking.caregiver.full_name,
+        email: complaint.booking.caregiver.email
+      }
+    : null;
+
+  const booking = complaint.booking
+    ? {
+        id: complaint.booking._id
+      }
+    : null;
+
+  const formattedComplaint = {
+    complaintId: complaint._id,
+    subject: complaint.subject,
+    message: complaint.message,
+    complaint_category: complaint.complaint_category,
+    status: complaint.status,
+    createdAt: complaint.createdAt,
+    client,
+    caregiver,
+    booking,
+    user: {
+      id: complaint.user?._id || (complaint.booking && complaint.booking.client?._id) || null,
+      name: complaint.user?.full_name || (complaint.booking && complaint.booking.client?.full_name) || null,
+      email: complaint.user?.email || (complaint.booking && complaint.booking.client?.email) || null
+    }
+  };
+
   res.status(200).json({
     status: "success",
     data: {
-      complaint
+      complaint: formattedComplaint
     }
   });
 };

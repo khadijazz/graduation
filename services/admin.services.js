@@ -147,11 +147,26 @@ const rejectCaregiver = async (caregiverId, reason) => {
 const getComplaintsService = async () => {
   return await Complaint.find()
     .populate("user", "full_name email")
+    .populate({
+      path: "booking",
+      populate: [
+        { path: "client", select: "full_name email" },
+        { path: "caregiver", select: "full_name email" }
+      ]
+    })
     .sort({ createdAt: -1 });
 };
 
 const getComplaintByIdService = async (complaintId) => {
-  const complaint = await Complaint.findById(complaintId).populate("user", "full_name email");
+  const complaint = await Complaint.findById(complaintId)
+    .populate("user", "full_name email")
+    .populate({
+      path: "booking",
+      populate: [
+        { path: "client", select: "full_name email" },
+        { path: "caregiver", select: "full_name email" }
+      ]
+    });
   if (!complaint) {
     throw new ApiError("Complaint not found", 404);
   }
