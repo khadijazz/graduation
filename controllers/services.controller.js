@@ -11,9 +11,10 @@ exports.createService = async (req, res, next) => {
 }
 
 exports.getAllServices=async (req,res,next)=>{
-    const Services=await servicesServices.getallservices(req.query);
+    const Services=await servicesServices.getallservices();
     res.status(200).json({
         status:"success",
+       result:Services.length,
         data:Services
     })
 }
