@@ -178,3 +178,22 @@ exports.updatePassword = async (req, res, next) => {
   });
 };
 
+exports.deleteMe = async (req, res, next) => {
+  try {
+    await userlogServices.deleteAccount(req.user._id, "caregiver");
+    res.status(200).json({
+      status: "success",
+      message: "Account deleted successfully",
+      data: null
+    });
+  } catch (error) {
+    if (error.statusCode === 400) {
+      return res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+    return next(error);
+  }
+};
+

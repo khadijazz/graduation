@@ -103,16 +103,22 @@ exports.updatePassword = async (req, res, next) => {
 };
 
 exports.deleteuserlog = async (req, res, next) => {
-
-  const user = await userlogServices.deleteUserLog(
-    req.user._id
-  );
-
-  res.status(200).json({
-    status: "success",
-    message: "Account deleted successfully",
-    data: null
-  });
+  try {
+    await userlogServices.deleteAccount(req.user._id, "client");
+    res.status(200).json({
+      status: "success",
+      message: "Account deleted successfully",
+      data: null
+    });
+  } catch (error) {
+    if (error.statusCode === 400) {
+      return res.status(400).json({
+        success: false,
+        message: error.message
+      });
+    }
+    return next(error);
+  }
 };
 
 exports.openResetPassword = async (req, res) => {

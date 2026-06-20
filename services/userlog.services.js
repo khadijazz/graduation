@@ -1,10 +1,20 @@
 const Userlog = require("../models/userlog.model");
-const CaregiverModel=require("../models/caregiver.model");
-const adminModel=require("../models/admin.model");
+const CaregiverModel = require("../models/caregiver.model");
+const adminModel = require("../models/admin.model");
 const Request = require("../models/request.model");
 const Offer = require("../models/offer.model");
 const Booking = require("../models/booking.model");
 const Wallet = require("../models/wallet.model");
+const Transaction = require("../models/transaction.model");
+const Notification = require("../models/notification.model");
+const Review = require("../models/review.model");
+const Complaint = require("../models/complaint.model");
+const ClientBundle = require("../models/clientbundel.model");
+const CaregiverLocation = require("../models/caregiverLocation.model");
+const { ChatSession, Message } = require("../models/Chat.model");
+const Task = require("../models/tasks.model");
+const mongoose = require("mongoose");
+const { createNotification } = require("./notification.services");
 const jwt =require("jsonwebtoken");
 const bcrypt=require("bcryptjs");
 const crypto = require("crypto"); 
@@ -275,37 +285,172 @@ const resetPassword = async (plainToken, newPassword, passwordConfirmation) => {
   
   return jwt.sign({ id: user._id, role: user.role }, "this-is-my-very-long-secret-key");
 };
-const deleteUserLog = async (userId) => {
+const deleteAccount = async (userId, role) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  const requests = await Request.find({
-    client: userId
-  });
+  try {
+    // 1. Send the notification first (before deletion)
+    await createNotification({
+      recipientId: userId,
+      recipientRole: role,
+      notificationType: "ACCOUNT_DELETION_REQUEST",
+      title: "Account Deletion Request",
+      message: "Account deletion request received."
+    });
 
-  const requestIds = requests.map(r => r._id);
+    // 2. Perform validations
+    // Active bookings check
+    // Active status: PENDING, ACCEPTED, CONFIRMED, IN_PROGRESS
+    const activeBookingQuery = {
+      bookingStatus: { $in: ["PENDING", "ACCEPTED", "CONFIRMED", "IN_PROGRESS"] }
+    };
+    if (role === "client") {
+      activeBookingQuery.client = userId;
+    } else {
+      activeBookingQuery.caregiver = userId;
+    }
 
-  await Offer.deleteMany({
-    request: { $in: requestIds }
-  });
+    const activeBooking = await Booking.findOne(activeBookingQuery).session(session);
+    if (activeBooking) {
+      throw new ApiError("Cannot delete account while active bookings exist.", 400);
+    }
 
-  await Booking.deleteMany({
-    client: userId
-  });
+    // Wallet check
+    const wallet = await Wallet.findOne({ userlog: userId, ownerModel: role === "client" ? "Userlog" : "Caregiver" }).session(session);
+    if (wallet) {
+      if (wallet.balance > 0 || wallet.holdBalance > 0) {
+        throw new ApiError("Please withdraw or spend your wallet balance before deleting your account.", 400);
+      }
+    }
 
-  await Request.deleteMany({
-    client: userId
-  });
+    // 3. Delete related data
+    if (role === "client") {
+      // CLIENT CLEANUP
+      // Delete Client Bundle records
+      await ClientBundle.deleteMany({ client: userId }).session(session);
 
-  await Wallet.deleteOne({
-    userlog: userId
-  });
+      // Find requests to clean up tasks/offers/bookings
+      const requests = await Request.find({ client: userId }).session(session);
+      const requestIds = requests.map(r => r._id);
 
-  const user = await Userlog.findByIdAndDelete(userId);
+      // Delete tasks linked to client requests
+      await Task.deleteMany({ request: { $in: requestIds } }).session(session);
 
-  if (!user) {
-    throw new ApiError("User not found", 404);
+      // Delete offers linked to client requests
+      await Offer.deleteMany({ request: { $in: requestIds } }).session(session);
+
+      // Delete bookings linked to client requests or client
+      await Booking.deleteMany({
+        $or: [
+          { request: { $in: requestIds } },
+          { client: userId }
+        ]
+      }).session(session);
+
+      // Delete requests
+      await Request.deleteMany({ client: userId }).session(session);
+
+      // Delete reviews created by client
+      await Review.deleteMany({ reviewer: userId, reviewerModel: "Userlog" }).session(session);
+
+      // Delete complaints created by client
+      await Complaint.deleteMany({ user: userId }).session(session);
+
+      // Delete notifications
+      await Notification.deleteMany({ recipientId: userId }).session(session);
+
+      // Delete AI assistant data
+      const chatSessions = await ChatSession.find({ user: userId }).session(session);
+      const chatSessionIds = chatSessions.map(c => c._id);
+      await Message.deleteMany({ session: { $in: chatSessionIds } }).session(session);
+      await ChatSession.deleteMany({ user: userId }).session(session);
+
+      // Delete Transactions
+      await Transaction.deleteMany({
+        $or: [
+          { userlog: userId, ownerModel: "Userlog" },
+          { client: userId }
+        ]
+      }).session(session);
+      if (wallet) {
+        await Transaction.deleteMany({ wallet: wallet._id }).session(session);
+      }
+
+      // Delete Wallet
+      await Wallet.deleteMany({ userlog: userId, ownerModel: "Userlog" }).session(session);
+
+      // Delete User account
+      const user = await Userlog.findByIdAndDelete(userId).session(session);
+      if (!user) {
+        throw new ApiError("User not found", 404);
+      }
+
+    } else if (role === "caregiver") {
+      // CAREGIVER CLEANUP
+      // Delete Caregiver Location records
+      await CaregiverLocation.deleteMany({ caregiver: userId }).session(session);
+
+      // Delete offers submitted by caregiver
+      await Offer.deleteMany({ caregiver: userId }).session(session);
+
+      // Delete reviews received by caregiver
+      await Review.deleteMany({ reviewee: userId, revieweeModel: "Caregiver" }).session(session);
+
+      // Delete complaints related to caregiver
+      const caregiverBookings = await Booking.find({ caregiver: userId }).session(session);
+      const caregiverBookingIds = caregiverBookings.map(b => b._id);
+      await Complaint.deleteMany({ booking: { $in: caregiverBookingIds } }).session(session);
+
+      // Delete bookings caregiver was involved in
+      await Booking.deleteMany({ caregiver: userId }).session(session);
+
+      // Delete notifications
+      await Notification.deleteMany({ recipientId: userId }).session(session);
+
+      // Delete AI assistant data
+      const chatSessions = await ChatSession.find({ user: userId }).session(session);
+      const chatSessionIds = chatSessions.map(c => c._id);
+      await Message.deleteMany({ session: { $in: chatSessionIds } }).session(session);
+      await ChatSession.deleteMany({ user: userId }).session(session);
+
+      // Delete Transactions
+      await Transaction.deleteMany({
+        $or: [
+          { userlog: userId, ownerModel: "Caregiver" },
+          { caregiver: userId }
+        ]
+      }).session(session);
+      if (wallet) {
+        await Transaction.deleteMany({ wallet: wallet._id }).session(session);
+      }
+
+      // Delete Wallet
+      await Wallet.deleteMany({ userlog: userId, ownerModel: "Caregiver" }).session(session);
+
+      // Delete Caregiver account
+      const cg = await CaregiverModel.findByIdAndDelete(userId).session(session);
+      if (!cg) {
+        throw new ApiError("Caregiver not found", 404);
+      }
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
+    // Audit log
+    console.log("Account permanently deleted.");
+    return { success: true };
+
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
   }
+};
 
-  return user;
+const deleteUserLog = async (userId) => {
+  return deleteAccount(userId, "client");
 };
 
 
@@ -317,5 +462,6 @@ module.exports ={
     getUserById,
     resetPassword,
     forgotPassword,
-    deleteUserLog
+    deleteUserLog,
+    deleteAccount
 }

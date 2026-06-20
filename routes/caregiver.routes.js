@@ -10,6 +10,7 @@ const {permittedTo} =require("../Utills/premittedTo");
 router.route('/')
 .get(verifyUser, permittedTo(["admin"]),controller.getallcaregiver)
 
+router.delete('/delete_me', verifyUser, permittedTo(["caregiver"]), controller.deleteMe);
 
 router.route('/:id')
 .get(controller.getCareGiver)
