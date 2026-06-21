@@ -19,7 +19,7 @@ const createcaregiver = async (data) => {
 };
 
 const getallcaregiver = async () => {
-    const caregivers = await caregiver.find({ status: "Verified" }).select("full_name email createdAt status speciality");
+    const caregivers = await caregiver.find({ status: "Verified" }).select("full_name email createdAt status speciality isBlocked");
 
     return Promise.all(
         caregivers.map(async (cg) => ({
