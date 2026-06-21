@@ -91,19 +91,26 @@ exports.getallcaregiver = async (req, res, next) => {
 };
 
 
-exports.updateCareGiver = async (req,res)=>{
-        const updateData=req.body;
-        const newCaregiver=await caregiverServices.updatecaregiver(req.params.id,updateData);
-        if(!newCaregiver){
-            throw new ApiError("caregiver not found",404)
-        }
-        res.status(200).json({
-            status:"success",
-            message:"caregiver updated successfully",
-            data:newCaregiver,
-        });
+exports.updateCareGiver = async (req, res) => {
+  const updateData = { ...req.body };
 
-}
+  if (req.files?.profile_picture) {
+    updateData.profile_picture = await uploadToCloudinary(
+      req.files.profile_picture[0]
+    );
+  }
+
+  const newCaregiver = await caregiverServices.updateCareGiver(
+    req.params.id,
+    updateData
+  );
+
+  res.status(200).json({
+    status: "success",
+    message: "caregiver updated successfully",
+    data: newCaregiver,
+  });
+};
 
 exports.deleteCareGiver = async (req,res)=>{
     try {

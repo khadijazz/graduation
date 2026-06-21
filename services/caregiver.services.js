@@ -30,11 +30,28 @@ const getallcaregiver = async () => {
         }))
     );
 };
+const updateCareGiver = async (id, updates) => {
+  const updatedCaregiver = await caregiver.findByIdAndUpdate(
+    id,
+    updates,
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+
+  if (!updatedCaregiver) {
+    throw new ApiError("caregiver not found", 404);
+  }
+
+  return updatedCaregiver;
+};
+
+
 const getcaregiverbyid=(id)=>caregiver.findById(id);
-const updatecaregiver=(id,updates)=>caregiver.findByIdAndUpdate(id,updates,{new:true,runValidators:true});
 const deletecaregiver=(id)=>caregiver.findByIdAndDelete(id);
 const deleteAllCaregivers = () => caregiver.deleteMany();
 
 
 
-module.exports={createcaregiver,getallcaregiver,getcaregiverbyid,updatecaregiver,deletecaregiver,deleteAllCaregivers}
+module.exports={createcaregiver,getallcaregiver,getcaregiverbyid,deletecaregiver,deleteAllCaregivers,updateCareGiver}

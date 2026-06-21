@@ -14,7 +14,7 @@ router.delete('/delete_me', verifyUser, permittedTo(["caregiver"]), controller.d
 
 router.route('/:id')
 .get(controller.getCareGiver)
-.patch(controller.updateCareGiver)
+.patch(verifyUser, permittedTo(["caregiver"]),upload.fields([{ name: "profile_picture", maxCount: 1 }]),controller.updateCareGiver)
 .delete(permittedTo(["admin"]),controller.deleteCareGiver)  
 router.post('/signup',upload.fields([
     { name: "profile_picture", maxCount: 1 },
