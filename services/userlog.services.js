@@ -197,6 +197,7 @@ const getAllUsers = async () => {
                 email: 1,
                 createdAt: 1,
                 isBlocked:1,  
+                profile_picture:1,
                 bookingsCount: { $size: "$booking" }
             }
         }
